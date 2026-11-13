@@ -196,7 +196,7 @@ function SearchBox({ filter, nav }) {
         <Search className="size-5 shrink-0 text-txt-2" />
         <input value={text} onChange={(e) => { setText(e.target.value); setOpen(true); setHi(-1) }} onFocus={() => setOpen(true)} onKeyDown={onKey}
           type="search" role="combobox" aria-expanded={open} aria-controls="search-list" aria-autocomplete="list" aria-label="Поиск корма"
-          placeholder="поиск: котята, утка, мелкие породы…" className="w-full min-w-0 bg-transparent text-[16px] outline-none placeholder:text-txt-2 sm:text-[15px] [&::-webkit-search-cancel-button]:hidden" />
+          placeholder="котята, утка, мелкие породы…" className="w-full min-w-0 bg-transparent text-[16px] outline-none placeholder:text-txt-2 sm:text-[15px] [&::-webkit-search-cancel-button]:hidden" />
         {text && <button type="button" onClick={() => setText('')} aria-label="Очистить"><X className="size-4 text-txt-2" /></button>}
       </label>
       {open && (
@@ -299,19 +299,20 @@ function Hero({ nav }) {
     <section className="wrap pt-4 lg:pt-6">
       {/* большой баннер, как промо-слайд «Золотого Яблока»: серый фон, крупный текст, товары справа */}
       <div className="relative grid overflow-hidden rounded-2xl bg-gray-1 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-center">
-        <div className="relative z-10 p-6 sm:p-10 xl:p-16">
-          <span className="kicker text-txt-2">суперпремиум · Новосибирск</span>
-          <h1 className="mt-4 text-balance text-[30px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[44px] xl:text-[64px]">Корма Wonderfur для кошек и собак</h1>
-          <p className="mt-4 max-w-[460px] text-[16px] leading-snug text-txt-2 sm:text-lg">
+        <div className="relative z-10 p-5 sm:p-10 xl:p-16">
+          <span className="kicker hidden text-txt-2 sm:inline">суперпремиум · Новосибирск</span>
+          <h1 className="text-balance text-[24px] font-semibold leading-[1.1] tracking-[-0.02em] sm:mt-4 sm:text-[44px] sm:leading-[1.05] sm:tracking-[-0.03em] xl:text-[64px]">Корма Wonderfur для кошек и собак</h1>
+          <p className="mt-2 text-[14px] leading-snug text-txt-2 sm:hidden">{products.length} рецептов · от {minAll} ₽ · доставка бесплатно</p>
+          <p className="mt-4 hidden max-w-[460px] text-lg leading-snug text-txt-2 sm:block">
             {products.length} рецептов с мясом до 46%: для стерилизованных кошек, котят, при МКБ, для собак всех пород, мелких пород и щенков. От {minAll} ₽, доставка по Петербургу бесплатно.
           </p>
-          <div className="mt-6 flex flex-wrap gap-2 sm:mt-8">
-            <Link to={kinds.cat.path} className="flex h-12 items-center rounded-full bg-ink px-7 text-[15px] font-medium text-white hover:bg-ink-2">кошкам</Link>
-            <Link to={kinds.dog.path} className="flex h-12 items-center rounded-full bg-white px-7 text-[15px] font-medium hover:bg-gray-2">собакам</Link>
-            <button onClick={() => nav.show({ q: 'новинки' })} className="flex h-12 items-center rounded-full bg-white px-7 text-[15px] font-medium hover:bg-gray-2">новинки · {novelties.length}</button>
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-8 sm:flex sm:flex-wrap">
+            <Link to={kinds.cat.path} className="flex h-11 items-center justify-center rounded-full bg-ink px-7 text-[15px] font-medium text-white hover:bg-ink-2 sm:h-12">кошкам</Link>
+            <Link to={kinds.dog.path} className="flex h-11 items-center justify-center rounded-full bg-white px-7 text-[15px] font-medium hover:bg-gray-2 sm:h-12">собакам</Link>
+            <button onClick={() => nav.show({ q: 'новинки' })} className="hidden h-12 items-center rounded-full bg-white px-7 text-[15px] font-medium hover:bg-gray-2 sm:flex">новинки · {novelties.length}</button>
           </div>
         </div>
-        <div className="pointer-events-none relative flex h-[260px] min-w-0 items-end justify-center overflow-hidden px-4 pt-4 sm:h-[380px] md:h-[480px] xl:h-[540px]">
+        <div className="pointer-events-none relative hidden h-[260px] min-w-0 sm:flex items-end justify-center overflow-hidden px-4 pt-4 sm:h-[380px] md:h-[480px] xl:h-[540px]">
           <img src={img('cat-sterile-turkey-duck')} {...IMG} alt="Упаковка Wonderfur для стерилизованных кошек с индейкой и уткой" fetchPriority="high" className="relative z-10 -mr-[6%] h-[80%] w-[30%] min-w-0 -rotate-6 object-contain object-bottom drop-shadow-xl" />
           <img src={img('dog-lamb-rice')} {...IMG} alt="Упаковка Wonderfur для взрослых собак с ягнёнком и рисом" fetchPriority="high" className="relative z-20 h-[92%] w-[36%] min-w-0 object-contain object-bottom drop-shadow-xl" />
           <img src={img('cat-kitten-turkey-chicken')} {...IMG} alt="Упаковка Wonderfur для котят" fetchPriority="high" className="relative z-10 -ml-[6%] h-[76%] w-[30%] min-w-0 rotate-6 object-contain object-bottom drop-shadow-xl" />
