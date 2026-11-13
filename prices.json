@@ -1,0 +1,254 @@
+[
+ {
+  "id": "cat-sterile-turkey-lamb",
+  "w": "400 г",
+  "price": 575,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и ягнёнком"
+ },
+ {
+  "id": "cat-sterile-turkey-lamb",
+  "w": "2 кг",
+  "price": 2387,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и ягнёнком"
+ },
+ {
+  "id": "cat-sterile-turkey-lamb",
+  "w": "5 кг",
+  "price": 4938,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и ягнёнком"
+ },
+ {
+  "id": "cat-sterile-turkey-veal",
+  "w": "400 г",
+  "price": 554,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и телятиной"
+ },
+ {
+  "id": "cat-sterile-turkey-veal",
+  "w": "2 кг",
+  "price": 2280,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и телятиной"
+ },
+ {
+  "id": "cat-sterile-turkey-veal",
+  "w": "5 кг",
+  "price": 4715,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и телятиной"
+ },
+ {
+  "id": "cat-sterile-turkey-chicken",
+  "w": "400 г",
+  "price": 551,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и курицей"
+ },
+ {
+  "id": "cat-sterile-turkey-chicken",
+  "w": "2 кг",
+  "price": 2270,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и курицей"
+ },
+ {
+  "id": "cat-sterile-turkey-chicken",
+  "w": "5 кг",
+  "price": 4690,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и курицей"
+ },
+ {
+  "id": "cat-sterile-turkey-duck",
+  "w": "400 г",
+  "price": 660,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и уткой"
+ },
+ {
+  "id": "cat-sterile-turkey-duck",
+  "w": "2 кг",
+  "price": 2730,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и уткой"
+ },
+ {
+  "id": "cat-sterile-turkey-duck",
+  "w": "5 кг",
+  "price": 5156,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и уткой"
+ },
+ {
+  "id": "cat-sterile-turkey-fish",
+  "w": "400 г",
+  "price": 660,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и белой рыбой"
+ },
+ {
+  "id": "cat-sterile-turkey-fish",
+  "w": "2 кг",
+  "price": 2730,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и белой рыбой"
+ },
+ {
+  "id": "cat-sterile-turkey-fish",
+  "w": "5 кг",
+  "price": 5700,
+  "name": "Wonderfur — Для стерилизованных кошек с индейкой и белой рыбой"
+ },
+ {
+  "id": "cat-urinary",
+  "w": "400 г",
+  "price": 675,
+  "name": "Wonderfur — Urinary для взрослых кошек при МКБ струвитного типа"
+ },
+ {
+  "id": "cat-urinary",
+  "w": "2 кг",
+  "price": 2760,
+  "name": "Wonderfur — Urinary для взрослых кошек при МКБ струвитного типа"
+ },
+ {
+  "id": "cat-urinary",
+  "w": "5 кг",
+  "price": 5720,
+  "name": "Wonderfur — Urinary для взрослых кошек при МКБ струвитного типа"
+ },
+ {
+  "id": "cat-kitten-turkey-chicken",
+  "w": "400 г",
+  "price": 615,
+  "name": "Wonderfur — Для котят с индейкой и курицей"
+ },
+ {
+  "id": "cat-kitten-turkey-chicken",
+  "w": "2 кг",
+  "price": 2510,
+  "name": "Wonderfur — Для котят с индейкой и курицей"
+ },
+ {
+  "id": "cat-kitten-turkey-chicken",
+  "w": "5 кг",
+  "price": 5200,
+  "name": "Wonderfur — Для котят с индейкой и курицей"
+ },
+ {
+  "id": "dog-lamb-rice",
+  "w": "800 г",
+  "price": 837,
+  "name": "Wonderfur — Для взрослых собак с ягнёнком и рисом"
+ },
+ {
+  "id": "dog-lamb-rice",
+  "w": "3 кг",
+  "price": 2738,
+  "name": "Wonderfur — Для взрослых собак с ягнёнком и рисом"
+ },
+ {
+  "id": "dog-lamb-rice",
+  "w": "10 кг",
+  "price": 7816,
+  "name": "Wonderfur — Для взрослых собак с ягнёнком и рисом"
+ },
+ {
+  "id": "dog-turkey-rice",
+  "w": "800 г",
+  "price": 837,
+  "name": "Wonderfur — Для взрослых собак с индейкой и рисом"
+ },
+ {
+  "id": "dog-turkey-rice",
+  "w": "3 кг",
+  "price": 2617,
+  "name": "Wonderfur — Для взрослых собак с индейкой и рисом"
+ },
+ {
+  "id": "dog-turkey-rice",
+  "w": "10 кг",
+  "price": 7439,
+  "name": "Wonderfur — Для взрослых собак с индейкой и рисом"
+ },
+ {
+  "id": "dog-beef-rice",
+  "w": "800 г",
+  "price": 848,
+  "name": "Wonderfur — Для взрослых собак с говядиной и рисом"
+ },
+ {
+  "id": "dog-beef-rice",
+  "w": "3 кг",
+  "price": 2666,
+  "name": "Wonderfur — Для взрослых собак с говядиной и рисом"
+ },
+ {
+  "id": "dog-beef-rice",
+  "w": "10 кг",
+  "price": 7574,
+  "name": "Wonderfur — Для взрослых собак с говядиной и рисом"
+ },
+ {
+  "id": "dog-small-turkey-potato",
+  "w": "400 г",
+  "price": 623,
+  "name": "Wonderfur — Для собак мелких пород с индейкой и картофелем"
+ },
+ {
+  "id": "dog-small-turkey-potato",
+  "w": "2 кг",
+  "price": 2335,
+  "name": "Wonderfur — Для собак мелких пород с индейкой и картофелем"
+ },
+ {
+  "id": "dog-small-turkey-potato",
+  "w": "5 кг",
+  "price": 4753,
+  "name": "Wonderfur — Для собак мелких пород с индейкой и картофелем"
+ },
+ {
+  "id": "dog-small-chicken-potato",
+  "w": "400 г",
+  "price": 602,
+  "name": "Wonderfur — Для собак мелких пород с курицей и картофелем"
+ },
+ {
+  "id": "dog-small-chicken-potato",
+  "w": "2 кг",
+  "price": 2231,
+  "name": "Wonderfur — Для собак мелких пород с курицей и картофелем"
+ },
+ {
+  "id": "dog-small-chicken-potato",
+  "w": "5 кг",
+  "price": 4524,
+  "name": "Wonderfur — Для собак мелких пород с курицей и картофелем"
+ },
+ {
+  "id": "dog-small-turkey-fish",
+  "w": "400 г",
+  "price": 590,
+  "name": "Wonderfur — Для собак мелких пород с индейкой и белой рыбой"
+ },
+ {
+  "id": "dog-small-turkey-fish",
+  "w": "2 кг",
+  "price": 2140,
+  "name": "Wonderfur — Для собак мелких пород с индейкой и белой рыбой"
+ },
+ {
+  "id": "dog-small-turkey-fish",
+  "w": "5 кг",
+  "price": 4780,
+  "name": "Wonderfur — Для собак мелких пород с индейкой и белой рыбой"
+ },
+ {
+  "id": "dog-puppy-turkey-rice",
+  "w": "400 г",
+  "price": 590,
+  "name": "Wonderfur — Для щенков мелких и средних пород с индейкой и рисом"
+ },
+ {
+  "id": "dog-puppy-turkey-rice",
+  "w": "2 кг",
+  "price": 2310,
+  "name": "Wonderfur — Для щенков мелких и средних пород с индейкой и рисом"
+ },
+ {
+  "id": "dog-puppy-turkey-rice",
+  "w": "5 кг",
+  "price": 4790,
+  "name": "Wonderfur — Для щенков мелких и средних пород с индейкой и рисом"
+ }
+]

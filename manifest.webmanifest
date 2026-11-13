@@ -1,0 +1,22 @@
+{
+  "name": "Wonderfur — корма для кошек и собак",
+  "short_name": "Wonderfur",
+  "lang": "ru",
+  "start_url": "/wonderfur-shop/",
+  "scope": "/wonderfur-shop/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/wonderfur-shop/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/wonderfur-shop/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
