@@ -312,7 +312,7 @@ function Hero({ nav }) {
             <button onClick={() => nav.show({ q: 'новинки' })} className="hidden h-12 items-center rounded-full bg-white px-7 text-[15px] font-medium hover:bg-gray-2 sm:flex">новинки · {novelties.length}</button>
           </div>
         </div>
-        <div className="pointer-events-none relative hidden h-[260px] min-w-0 sm:flex items-end justify-center overflow-hidden px-4 pt-4 sm:h-[380px] md:h-[480px] xl:h-[540px]">
+        <div className="pointer-events-none relative -mt-2 flex h-[210px] min-w-0 items-end justify-center overflow-hidden px-4 sm:mt-0 sm:h-[380px] sm:pt-4 md:h-[480px] xl:h-[540px]">
           <img src={img('cat-sterile-turkey-duck')} {...IMG} alt="Упаковка Wonderfur для стерилизованных кошек с индейкой и уткой" fetchPriority="high" className="relative z-10 -mr-[6%] h-[80%] w-[30%] min-w-0 -rotate-6 object-contain object-bottom drop-shadow-xl" />
           <img src={img('dog-lamb-rice')} {...IMG} alt="Упаковка Wonderfur для взрослых собак с ягнёнком и рисом" fetchPriority="high" className="relative z-20 h-[92%] w-[36%] min-w-0 object-contain object-bottom drop-shadow-xl" />
           <img src={img('cat-kitten-turkey-chicken')} {...IMG} alt="Упаковка Wonderfur для котят" fetchPriority="high" className="relative z-10 -ml-[6%] h-[76%] w-[30%] min-w-0 rotate-6 object-contain object-bottom drop-shadow-xl" />
