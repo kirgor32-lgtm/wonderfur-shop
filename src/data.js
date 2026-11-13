@@ -34,7 +34,7 @@ export const manufacturer = 'ООО «КРОКЕТ», г. Новосибирск
 export const products = [
   {
     id: 'cat-sterile-turkey-lamb', slug: 'dlya-sterilizovannyh-koshek-indejka-i-yagnenok', kind: 'cat', age: 'adult', ageLabel: 'стерилизованные кошки',
-    line: 'Wonderfur', code: 'K', isNew: false, taste: 'индейка и ягнёнок',
+    line: 'Wonderfur', code: 'K', taste: 'индейка и ягнёнок',
     name: 'Для стерилизованных кошек с индейкой и ягнёнком',
     short: 'корм для стерилизованных кошек с индейкой и ягнёнком',
     bg: '',
@@ -49,7 +49,7 @@ export const products = [
   },
   {
     id: 'cat-sterile-turkey-veal', slug: 'dlya-sterilizovannyh-koshek-indejka-i-telyatina', kind: 'cat', age: 'adult', ageLabel: 'стерилизованные кошки',
-    line: 'Wonderfur', code: 'D', isNew: false, taste: 'индейка и телятина',
+    line: 'Wonderfur', code: 'D', taste: 'индейка и телятина',
     name: 'Для стерилизованных кошек с индейкой и телятиной',
     short: 'корм для стерилизованных кошек с индейкой и телятиной',
     bg: '',
@@ -64,7 +64,7 @@ export const products = [
   },
   {
     id: 'cat-sterile-turkey-chicken', slug: 'dlya-sterilizovannyh-koshek-indejka-i-kurica', kind: 'cat', age: 'adult', ageLabel: 'стерилизованные кошки',
-    line: 'Wonderfur', code: 'F', isNew: false, taste: 'индейка и курица',
+    line: 'Wonderfur', code: 'F', taste: 'индейка и курица',
     name: 'Для стерилизованных кошек с индейкой и курицей',
     short: 'корм для стерилизованных кошек с индейкой и курицей',
     bg: '',
@@ -79,13 +79,13 @@ export const products = [
   },
   {
     id: 'cat-sterile-turkey-duck', slug: 'dlya-sterilizovannyh-koshek-indejka-i-utka', kind: 'cat', age: 'adult', ageLabel: 'стерилизованные кошки',
-    line: 'Wonderfur', code: 'M', isNew: true, taste: 'индейка и утка',
+    line: 'Wonderfur', code: 'M', taste: 'индейка и утка',
     name: 'Для стерилизованных кошек с индейкой и уткой',
     short: 'корм для стерилизованных кошек с индейкой и уткой',
     bg: '',
     weights: [{ w: '400 г', price: 660, gtin: '4603741956399' }, { w: '2 кг', price: 2730, gtin: '4603741956405' }, { w: '5 кг', price: 5156, gtin: '4603741956412' }],
     text: 'Самый мясной рецепт линейки: 46% мяса индейки и утки. С пробиотиком Муцинол, пребиотиком МОС, глюкозамином и хондроитином.',
-    more: 'Новинка Wonderfur для взрослых стерилизованных кошек. Порцию считайте по таблице на упаковке, на новый корм переводите за 7–10 дней.',
+    more: 'Wonderfur для взрослых стерилизованных кошек. Порцию считайте по таблице на упаковке, на новый корм переводите за 7–10 дней.',
     composition: {
       top: 'Мясо индейки и утки 46% (индейки 28%, утки 18%)',
       full: 'Высушенное и измельченное мясо индейки и утки 46% (индейки 28%, утки 18%), рис (20%), животный жир (9%), картофель сушеный, лен, свекла, желтый горох, гидролизованное мясо утки, гидролизат куриной печени, гидролизат животного белка, витамины, масло лосося, подсолнечное масло, дегидрированное куриное яйцо, пребиотик МОС, холин, таурин, пробиотик Муцинол, глюкозамин и хондроитин, клюква, экстракты календулы и цикория',
@@ -94,7 +94,7 @@ export const products = [
   },
   {
     id: 'cat-sterile-turkey-fish', slug: 'dlya-sterilizovannyh-koshek-indejka-i-belaya-ryba', kind: 'cat', age: 'adult', ageLabel: 'стерилизованные кошки',
-    line: 'Wonderfur', code: '', isNew: true, taste: 'индейка и белая рыба',
+    line: 'Wonderfur', code: '', taste: 'индейка и белая рыба',
     name: 'Для стерилизованных кошек с индейкой и белой рыбой',
     short: 'корм для стерилизованных кошек с индейкой и белой рыбой',
     bg: '',
@@ -109,7 +109,7 @@ export const products = [
   },
   {
     id: 'cat-urinary', slug: 'urinary-dlya-koshek-pri-mkb', kind: 'cat', age: 'adult', ageLabel: 'кошки с МКБ струвитного типа',
-    line: 'Wonderfur', code: '', isNew: true, taste: 'утка и курица',
+    line: 'Wonderfur', code: '', taste: 'утка и курица',
     name: 'Urinary для взрослых кошек при МКБ струвитного типа',
     short: 'корм для кошек при мочекаменной болезни струвитного типа',
     bg: '',
@@ -124,7 +124,7 @@ export const products = [
   },
   {
     id: 'cat-kitten-turkey-chicken', slug: 'dlya-kotyat-indejka-i-kurica', kind: 'cat', age: 'young', ageLabel: 'котята',
-    line: 'Wonderfur', code: '', isNew: true, taste: 'индейка и курица',
+    line: 'Wonderfur', code: '', taste: 'индейка и курица',
     name: 'Для котят с индейкой и курицей',
     short: 'корм для котят с индейкой и курицей',
     bg: '',
@@ -139,7 +139,7 @@ export const products = [
   },
   {
     id: 'dog-lamb-rice', slug: 'dlya-sobak-yagnenok-i-ris', kind: 'dog', age: 'adult', ageLabel: 'взрослые собаки',
-    line: 'Wonderfur', code: 'A', isNew: false, taste: 'ягнёнок и рис',
+    line: 'Wonderfur', code: 'A', taste: 'ягнёнок и рис',
     name: 'Для взрослых собак с ягнёнком и рисом',
     short: 'корм для взрослых собак с ягнёнком и рисом',
     bg: '',
@@ -154,7 +154,7 @@ export const products = [
   },
   {
     id: 'dog-turkey-rice', slug: 'dlya-sobak-indejka-i-ris', kind: 'dog', age: 'adult', ageLabel: 'взрослые собаки',
-    line: 'Wonderfur', code: 'V', isNew: false, taste: 'индейка и рис',
+    line: 'Wonderfur', code: 'V', taste: 'индейка и рис',
     name: 'Для взрослых собак с индейкой и рисом',
     short: 'корм для взрослых собак с индейкой и рисом',
     bg: '',
@@ -169,7 +169,7 @@ export const products = [
   },
   {
     id: 'dog-beef-rice', slug: 'dlya-sobak-govyadina-i-ris', kind: 'dog', age: 'adult', ageLabel: 'взрослые собаки',
-    line: 'Wonderfur', code: 'P', isNew: false, taste: 'говядина и рис',
+    line: 'Wonderfur', code: 'P', taste: 'говядина и рис',
     name: 'Для взрослых собак с говядиной и рисом',
     short: 'корм для взрослых собак с говядиной и рисом',
     bg: '',
@@ -184,7 +184,7 @@ export const products = [
   },
   {
     id: 'dog-small-turkey-potato', slug: 'dlya-sobak-melkih-porod-indejka-i-kartofel', kind: 'dog', age: 'adult', ageLabel: 'собаки мелких пород',
-    line: 'Wonderfur', code: 'B', isNew: false, taste: 'индейка и картофель',
+    line: 'Wonderfur', code: 'B', taste: 'индейка и картофель',
     name: 'Для собак мелких пород с индейкой и картофелем',
     short: 'корм для собак мелких пород с индейкой и картофелем',
     bg: '',
@@ -199,7 +199,7 @@ export const products = [
   },
   {
     id: 'dog-small-chicken-potato', slug: 'dlya-sobak-melkih-porod-kurica-i-kartofel', kind: 'dog', age: 'adult', ageLabel: 'собаки мелких пород',
-    line: 'Wonderfur', code: 'C', isNew: false, taste: 'курица и картофель',
+    line: 'Wonderfur', code: 'C', taste: 'курица и картофель',
     name: 'Для собак мелких пород с курицей и картофелем',
     short: 'корм для собак мелких пород с курицей и картофелем',
     bg: '',
@@ -214,13 +214,13 @@ export const products = [
   },
   {
     id: 'dog-small-turkey-fish', slug: 'dlya-sobak-melkih-porod-indejka-i-belaya-ryba', kind: 'dog', age: 'adult', ageLabel: 'собаки мелких пород',
-    line: 'Wonderfur', code: '', isNew: true, taste: 'индейка и белая рыба',
+    line: 'Wonderfur', code: '', taste: 'индейка и белая рыба',
     name: 'Для собак мелких пород с индейкой и белой рыбой',
     short: 'корм для собак мелких пород с индейкой и белой рыбой',
     bg: '',
     weights: [{ w: '400 г', price: 590, gtin: '4603741956665' }, { w: '2 кг', price: 2140, gtin: '4603741956658' }, { w: '5 кг', price: 4780, gtin: '4603741956696' }],
     text: 'Рецепт для взрослых собак мелких пород с индейкой и белой рыбой: глюкозамин и хондроитин, таурин, L-карнитин, масло лосося.',
-    more: 'Новинка Wonderfur для маленьких собак. Переводите на новый корм постепенно, за 7–10 дней.',
+    more: 'Wonderfur для маленьких собак. Переводите на новый корм постепенно, за 7–10 дней.',
     composition: {
       top: 'Мясо индейки и белой рыбы не менее 30% (индейки 21%, белой рыбы 9%)',
       full: 'Мясо сушёное и измельченное индейки и белой рыбы не менее 30% (в том числе индейки 21% и белой рыбы 9%), рис, мякоть свеклы, картофель, животный жир (9,5%), лён, горох, гидролизат говяжьей печени, минералы, растительное масло, витамины, яйцо куриное дегидрированное, масло лосося (0,5%), пребиотик МОС, холин, глюкозамин и хондроитин, таурин, L-карнитин, яблоко сушенное, Юкка Шидигера, кора дуба, черника, клюква, ламинария, экстракты алтея, ромашки, календулы и цикория',
@@ -229,7 +229,7 @@ export const products = [
   },
   {
     id: 'dog-puppy-turkey-rice', slug: 'dlya-shchenkov-indejka-i-ris', kind: 'dog', age: 'young', ageLabel: 'щенки мелких и средних пород',
-    line: 'Wonderfur', code: '', isNew: true, taste: 'индейка и рис',
+    line: 'Wonderfur', code: '', taste: 'индейка и рис',
     name: 'Для щенков мелких и средних пород с индейкой и рисом',
     short: 'корм для щенков мелких и средних пород с индейкой и рисом',
     bg: '',
@@ -272,7 +272,7 @@ export const productPath = (p) => `${kinds[p.kind].path}${p.slug}/`
 export const minPrice = (p) => Math.min(...p.weights.map((w) => w.price))
 
 // Популярные запросы в подсказках поиска
-export const searchHints = ['стерилизованных', 'котят', 'щенков', 'мелких пород', 'Urinary', 'индейка', 'ягнёнок', 'утка', 'белая рыба', 'говядина', 'новинки']
+export const searchHints = ['стерилизованных', 'котят', 'щенков', 'мелких пород', 'Urinary', 'индейка', 'ягнёнок', 'утка', 'белая рыба', 'говядина']
 
 export const benefits = [
   { icon: 'Drumstick', title: 'До 46% мясных ингредиентов', text: 'В рецептах для кошек — от 40 до 46%, в Urinary — 23% мяса птицы' },
@@ -284,7 +284,7 @@ export const stats = [
   ['14', 'рецептов'],
   ['до 46%', 'мясных ингредиентов'],
   ['3', 'фасовки у каждого рецепта'],
-  ['8', 'новинок в линейке'],
+  ['7 + 7', 'рецептов для кошек и для собак'],
 ]
 
 // Что известно о линейке (crocat.ru/brands/wonderfur)
@@ -349,7 +349,7 @@ export const pages = {
     body: [
       ['Производитель', 'Корма Wonderfur выпускает завод сухих экструдированных кормов КРОКЕТ (ООО «КРОКЕТ»), г. Новосибирск, ул. Большая, 308/7.'],
       ['Линейка', '14 рецептов: пять для стерилизованных кошек, для котят, Urinary при МКБ струвитного типа, три для взрослых собак, три для мелких пород и для щенков. У каждого рецепта три фасовки.'],
-      ['Состав', 'Мясные ингредиенты — до 46%. В рецептах — хондропротекторы, пребиотик МОС, таурин, L-карнитин, масло лосося, ягоды и травяные экстракты; в новинках — пробиотик Муцинол.'],
+      ['Состав', 'Мясные ингредиенты — до 46%. В рецептах — хондропротекторы, пребиотик МОС, таурин, L-карнитин, масло лосося, ягоды и травяные экстракты; в части рецептов — пробиотик Муцинол.'],
       ['Товарный знак', 'Wonderfur — зарегистрированный товарный знак № 942837.'],
       ['Наш магазин', 'Мы продаём корма Wonderfur в Санкт-Петербурге через интернет — с бесплатной доставкой до пунктов выдачи 5Post.'],
     ] },

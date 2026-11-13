@@ -114,7 +114,6 @@ function Logo({ light, onClick }) {
 
 /* ---------------- шапка ---------------- */
 const mainNav = [
-  ['новинки', null, { q: 'новинки' }],
   ['кошкам', kinds.cat.path],
   ['собакам', kinds.dog.path],
   ['стерилизованным', null, { q: 'стерилизованных' }],
@@ -153,7 +152,7 @@ function Header({ filter, nav }) {
         <div className="wrap no-scrollbar hidden h-12 items-center gap-7 overflow-x-auto text-[15px] lg:flex">
           {mainNav.map(([l, to, f]) => to
             ? <Link key={l} to={to} className="whitespace-nowrap hover:opacity-60">{l}</Link>
-            : <button key={l} onClick={() => nav.show(f)} className={cn('whitespace-nowrap hover:opacity-60', l === 'новинки' && 'font-semibold')}>{l}</button>)}
+            : <button key={l} onClick={() => nav.show(f)} className={cn('whitespace-nowrap hover:opacity-60')}>{l}</button>)}
         </div>
       </nav>
     </header>
@@ -162,7 +161,7 @@ function Header({ filter, nav }) {
 
 const matches = (p, f) => {
   const q = (f.q || '').trim().toLowerCase()
-  const hay = `${p.line} ${p.code ? p.code + ' ' : ''}${p.name} ${p.taste} ${p.ageLabel} ${p.isNew ? 'новинки новинка' : ''} ${p.weights.map((w) => w.w).join(' ')}`.toLowerCase()
+  const hay = `${p.line} ${p.code ? p.code + ' ' : ''}${p.name} ${p.taste} ${p.ageLabel} ${p.weights.map((w) => w.w).join(' ')}`.toLowerCase()
   const age = !f.age || f.age === 'all' || (f.age === 'kitten' ? p.kind === 'cat' && p.age === 'young' : f.age === 'puppy' ? p.kind === 'dog' && p.age === 'young' : p.age === f.age)
   return (!f.kind || f.kind === 'all' || p.kind === f.kind) && age && (!q || q.split(/\s+/).every((w) => hay.includes(w)))
 }
@@ -295,7 +294,6 @@ function Home({ filter, setFilter, nav, topic, setTopic }) {
 }
 
 function Hero({ nav }) {
-  const novelties = products.filter((p) => p.isNew)
   return (
     <section className="wrap pt-4 lg:pt-6">
       {/* большой баннер, как промо-слайд «Золотого Яблока»: серый фон, крупный текст, товары справа */}
@@ -310,7 +308,6 @@ function Hero({ nav }) {
           <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-8 sm:flex sm:flex-wrap">
             <Link to={kinds.cat.path} className="flex h-11 items-center justify-center rounded-full bg-ink px-7 text-[15px] font-medium text-white hover:bg-ink-2 sm:h-12">кошкам</Link>
             <Link to={kinds.dog.path} className="flex h-11 items-center justify-center rounded-full bg-white px-7 text-[15px] font-medium hover:bg-gray-2 sm:h-12">собакам</Link>
-            <button onClick={() => nav.show({ q: 'новинки' })} className="hidden h-12 items-center rounded-full bg-white px-7 text-[15px] font-medium hover:bg-gray-2 sm:flex">новинки · {novelties.length}</button>
           </div>
         </div>
         <div className="pointer-events-none relative -mt-2 flex h-[210px] min-w-0 items-end justify-center overflow-hidden px-4 sm:mt-0 sm:h-[380px] sm:pt-4 md:h-[480px] xl:h-[540px]">
@@ -322,7 +319,6 @@ function Hero({ nav }) {
       {/* круглые «истории»-категории, как на «Золотом Яблоке» */}
       <div className="no-scrollbar -mx-1 mt-5 flex gap-4 overflow-x-auto px-1 pb-1 pt-1 sm:gap-6">
         {[
-          ['новинки', 'cat-urinary', { q: 'новинки' }],
           ['стерилизованным', 'cat-sterile-turkey-lamb', { q: 'стерилизованных' }],
           ['котятам', 'cat-kitten-turkey-chicken', { kind: 'cat', age: 'kitten' }],
           ['при МКБ', 'cat-urinary', { q: 'Urinary' }],
@@ -386,7 +382,7 @@ function Catalog({ filter, setFilter, title, fixedKind, as }) {
   // «котятам» и «щенкам» — отдельные кнопки; показываем только подходящие к выбранному виду
   const ages = [['adult', 'взрослым'], ...(kind !== 'dog' ? [['kitten', 'котятам']] : []), ...(kind !== 'cat' ? [['puppy', 'щенкам']] : [])]
   const [sort, setSort] = useState('pop')
-  const sorted = useMemo(() => sort === 'pop' ? list : [...list].sort((a, b) => sort === 'asc' ? minPrice(a) - minPrice(b) : sort === 'desc' ? minPrice(b) - minPrice(a) : (b.isNew - a.isNew)), [list, sort])
+  const sorted = useMemo(() => sort === 'pop' ? list : [...list].sort((a, b) => sort === 'asc' ? minPrice(a) - minPrice(b) : minPrice(b) - minPrice(a)), [list, sort])
   const setKind = (v) => setFilter((f) => ({ ...f, kind: v, age: v === 'all' || (v === 'cat' && f.age === 'puppy') || (v === 'dog' && f.age === 'kitten') ? 'all' : f.age }))
   return (
     <section id="catalog" className="scroll-mt-44 py-14">
@@ -400,7 +396,6 @@ function Catalog({ filter, setFilter, title, fixedKind, as }) {
             <span>{list.length} {plural(list.length, 'товар', 'товара', 'товаров')} ·</span>
             <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Сортировка" className="cursor-pointer bg-transparent font-medium text-ink outline-none">
               <option value="pop">по популярности</option>
-              <option value="new">сначала новинки</option>
               <option value="asc">сначала дешевле</option>
               <option value="desc">сначала дороже</option>
             </select>
@@ -454,7 +449,6 @@ function ProductCard({ p }) {
           <img src={img(p.id)} {...IMG} loading="lazy" alt={`${p.line} — ${p.short}, ${p.taste}`} className="h-full w-full object-contain mix-blend-multiply transition duration-300 group-hover:scale-105" />
         </Link>
         <div className="absolute left-2 top-2 flex flex-col items-start gap-1 sm:left-3 sm:top-3">
-          {p.isNew && <span className="rounded-md bg-ink px-2 py-1 text-[11px] font-medium uppercase tracking-wide text-white">новинка</span>}
           {p.code && <span className="rounded-md bg-white px-2 py-1 text-[11px] font-semibold">рецепт {p.code}</span>}
         </div>
         <FavBtn faved={faved} onClick={() => st.toggleFav(p.id)} />
