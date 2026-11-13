@@ -383,17 +383,18 @@ function Catalog({ filter, setFilter, title, fixedKind, as }) {
   const list = useMemo(() => products.filter((p) => matches(p, { ...filter, kind: fixedKind || filter.kind })), [filter, fixedKind])
   const kind = fixedKind || filter.kind
   // «котятам» и «щенкам» — отдельные кнопки; показываем только подходящие к выбранному виду
-  const ages = [['all', 'любой возраст'], ['adult', 'взрослым'], ...(kind !== 'dog' ? [['kitten', 'котятам']] : []), ...(kind !== 'cat' ? [['puppy', 'щенкам']] : [])]
+  const ages = [['adult', 'взрослым'], ...(kind !== 'dog' ? [['kitten', 'котятам']] : []), ...(kind !== 'cat' ? [['puppy', 'щенкам']] : [])]
   const [sort, setSort] = useState('pop')
   const sorted = useMemo(() => sort === 'pop' ? list : [...list].sort((a, b) => sort === 'asc' ? minPrice(a) - minPrice(b) : sort === 'desc' ? minPrice(b) - minPrice(a) : (b.isNew - a.isNew)), [list, sort])
-  const setKind = (v) => setFilter((f) => ({ ...f, kind: v, age: (v === 'cat' && f.age === 'puppy') || (v === 'dog' && f.age === 'kitten') ? 'all' : f.age }))
+  const setKind = (v) => setFilter((f) => ({ ...f, kind: v, age: v === 'all' || (v === 'cat' && f.age === 'puppy') || (v === 'dog' && f.age === 'kitten') ? 'all' : f.age }))
   return (
     <section id="catalog" className="scroll-mt-44 py-14">
       <div className="wrap">
         {title && <SectionTitle as={as}>{title}</SectionTitle>}
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
           {!fixedKind && <Pills label="Для кого" value={filter.kind} onChange={setKind} items={[['all', 'все корма'], ['cat', 'кошкам'], ['dog', 'собакам']]} />}
-          <Pills label="Возраст" small value={filter.age} onChange={(v) => setFilter((f) => ({ ...f, age: v }))} items={ages} />
+          {/* «все корма» — без деления по возрасту; повторный клик по возрасту снимает фильтр */}
+          {kind !== 'all' && <Pills label="Возраст" small value={filter.age} onChange={(v) => setFilter((f) => ({ ...f, age: f.age === v ? 'all' : v }))} items={ages} />}
           <label className="ml-auto flex items-center gap-2 text-sm text-txt-2">
             <span>{list.length} {plural(list.length, 'товар', 'товара', 'товаров')} ·</span>
             <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Сортировка" className="cursor-pointer bg-transparent font-medium text-ink outline-none">
