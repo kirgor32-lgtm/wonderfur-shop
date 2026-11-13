@@ -281,8 +281,8 @@ function Home({ filter, setFilter, nav, topic, setTopic }) {
   return (
     <>
       <Hero nav={nav} />
-      <Benefits />
       <Catalog filter={filter} setFilter={setFilter} title="Ассортимент" />
+      <Benefits />
       <Mission />
       <Checks />
       <BlogStrip />

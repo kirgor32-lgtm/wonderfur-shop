@@ -50,12 +50,12 @@
 
 :root {
     --background: oklch(1 0 0);
-    --foreground: #000000;
+    --foreground: #2b2b30;
     --card: oklch(1 0 0);
-    --card-foreground: #1d1c22;
+    --card-foreground: #2b2b30;
     --popover: oklch(1 0 0);
-    --popover-foreground: #1d1c22;
-    --primary: #000000;
+    --popover-foreground: #2b2b30;
+    --primary: #2b2b30;
     --primary-foreground: #ffffff;
     --secondary: #f2f2f2;
     --secondary-foreground: oklch(0.205 0 0);
@@ -66,7 +66,7 @@
     --destructive: oklch(0.577 0.245 27.325);
     --border: #e6e6e6;
     --input: #d8d8d8;
-    --ring: #000000;
+    --ring: #2b2b30;
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -133,27 +133,27 @@
 }
 /* ---- «Wonderfur»: стиль по мотивам «Золотого Яблока» — чёрно-белый, светло-серые плитки под фото, чипсы-фильтры ---- */
 @theme {
-  --color-ink: #000000;
-  --color-ink-2: #262626;
+  --color-ink: #2b2b30;
+  --color-ink-2: #4a4a50;
   --color-gray-1: #f5f5f5;
   --color-gray-2: #ebebeb;
   --color-gray-3: #d4d4d4;
   --color-txt-2: #707070;
-  --color-sun: #000000;
+  --color-sun: #2b2b30;
   --color-sun-soft: #f2f2f2;
-  --color-violet: #000000;
-  --color-violet-dark: #000000;
+  --color-violet: #2b2b30;
+  --color-violet-dark: #2b2b30;
   --color-violet-soft: #f2f2f2;
-  --color-tang: #000000;
-  --color-red: #000000;
+  --color-tang: #2b2b30;
+  --color-red: #2b2b30;
   --color-myau: #f2f2f2;
-  --color-gav: #000000;
+  --color-gav: #2b2b30;
   --color-tile: #f2f2f2;
   --shadow-card: none;
 }
 /* крупные цифры — сплошные, жирные (никакой обводки) */
-.contour { color: #000; font-weight: 700; line-height: 1; letter-spacing: -0.04em; }
-.contour-ink { color: #000; font-weight: 700; line-height: 1; }
+.contour { color: #2b2b30; font-weight: 700; line-height: 1; letter-spacing: -0.04em; }
+.contour-ink { color: #2b2b30; font-weight: 700; line-height: 1; }
 .kicker { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
 .brand { font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 html { scrollbar-gutter: stable; }
