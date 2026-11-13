@@ -138,7 +138,6 @@ function Header({ filter, nav }) {
       <div className="wrap flex h-[64px] items-center gap-3 lg:h-[84px] lg:gap-6">
         <button className="-ml-2 flex size-11 items-center justify-center lg:hidden" onClick={() => st.setPanel('menu')} aria-label="Открыть меню"><Menu /></button>
         <Logo />
-        <button onClick={() => st.setPanel('menu')} className="hidden h-11 items-center gap-2 rounded-full bg-ink pl-4 pr-5 text-[15px] font-medium text-white hover:bg-ink-2 lg:flex"><Menu className="size-5" />каталог</button>
         <div className="hidden flex-1 lg:block"><SearchBox filter={filter} nav={nav} /></div>
         <div className="ml-auto flex items-center gap-0.5 lg:ml-0 lg:gap-2">
           <IconBtn label="избранное" n={st.fav.length} onClick={() => st.setPanel('fav')}><Heart /></IconBtn>
@@ -319,7 +318,7 @@ function Hero({ nav }) {
         </div>
       </div>
       {/* круглые «истории»-категории, как на «Золотом Яблоке» */}
-      <div className="no-scrollbar mt-6 flex gap-4 overflow-x-auto pb-1 sm:gap-6">
+      <div className="no-scrollbar -mx-1 mt-5 flex gap-4 overflow-x-auto px-1 pb-1 pt-1 sm:gap-6">
         {[
           ['новинки', 'cat-urinary', { q: 'новинки' }],
           ['стерилизованным', 'cat-sterile-turkey-lamb', { q: 'стерилизованных' }],
