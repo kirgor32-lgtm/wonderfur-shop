@@ -31,15 +31,15 @@ const cleanCart = (items) => (Array.isArray(items) ? items.flatMap((i) => {
 }) : [])
 
 export function StoreProvider({ children }) {
-  const [items, setItems] = usePersist('hv-cart', [], cleanCart)
-  const [fav, setFav] = usePersist('hv-fav', [], cleanFav)
-  const [user, setUser] = usePersist('hv-user', null)
-  const [orders, setOrders] = usePersist('hv-orders', [])
+  const [items, setItems] = usePersist('wf-cart', [], cleanCart)
+  const [fav, setFav] = usePersist('wf-fav', [], cleanFav)
+  const [user, setUser] = usePersist('wf-user', null)
+  const [orders, setOrders] = usePersist('wf-orders', [])
   const [panel, setPanel] = useState(null) // 'cart' | 'fav' | 'profile' | 'menu'
   const [checkout, setCheckout] = useState(false)
   const [compare, setCompare] = useState([]) // id товаров для сравнения состава, в рамках сессии
   const [promo, setPromo] = useState(null) // применённый промокод в этой сессии, например PROMO
-  const [promoRedeemed, setPromoRedeemed] = usePersist('hv-promo-redeemed', false) // промокод на первый заказ уже использован
+  const [promoRedeemed, setPromoRedeemed] = usePersist('wf-promo-redeemed', false) // промокод на первый заказ уже использован
 
   const api = useMemo(() => {
     const key = (id, w) => `${id}|${w}`

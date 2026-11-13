@@ -1028,7 +1028,7 @@ function Footer({ nav }) {
           <Link to={pages.privacy.path} className="underline hover:text-white">Политика конфиденциальности</Link> ·{' '}
           <Link to={pages.consent.path} className="underline hover:text-white">Согласие на обработку данных</Link>
         </p>
-        <p>© 2026 Wonderfur, Санкт-Петербург. Демонстрационный сайт.{' '}<button onClick={() => window.dispatchEvent(new Event('hv-cookies'))} className="underline hover:text-white">Настройки cookie</button></p>
+        <p>© 2026 Wonderfur, Санкт-Петербург. Демонстрационный сайт.{' '}<button onClick={() => window.dispatchEvent(new Event('wf-cookies'))} className="underline hover:text-white">Настройки cookie</button></p>
       </div>
     </footer>
   )
@@ -1069,12 +1069,12 @@ function Messengers() {
 function CookieBanner() {
   const [show, setShow] = useState(false)
   useEffect(() => {
-    try { if (!localStorage.getItem('hv-cookies')) setShow(true) } catch { setShow(true) }
+    try { if (!localStorage.getItem('wf-cookies')) setShow(true) } catch { setShow(true) }
     const reopen = () => setShow(true)
-    window.addEventListener('hv-cookies', reopen)
-    return () => window.removeEventListener('hv-cookies', reopen)
+    window.addEventListener('wf-cookies', reopen)
+    return () => window.removeEventListener('wf-cookies', reopen)
   }, [])
-  const save = (v) => { try { localStorage.setItem('hv-cookies', JSON.stringify({ v, at: new Date().toISOString() })) } catch { /* пусто */ } setShow(false); window.dispatchEvent(new Event('hv-consent')) }
+  const save = (v) => { try { localStorage.setItem('wf-cookies', JSON.stringify({ v, at: new Date().toISOString() })) } catch { /* пусто */ } setShow(false); window.dispatchEvent(new Event('wf-consent')) }
   if (!show) return null
   const policy = <Link to={pages.privacy.path} className="text-violet-dark underline">политике конфиденциальности</Link>
   return (
