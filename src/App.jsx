@@ -544,7 +544,7 @@ function Checks() {
 
 function PostCard({ p, H = 'h3' }) {
   return (
-    <Link to={`blog/${p.slug}/`} className="group flex min-w-[260px] flex-col overflow-hidden rounded-2xl bg-white text-left lg:min-w-0">
+    <Link to={`blog/${p.slug}/`} className="group flex min-w-[260px] flex-col rounded-2xl bg-white text-left lg:min-w-0">
       <div className={cn('flex h-[200px] items-center justify-center overflow-hidden rounded-2xl', p.tone)}>
         <img src={img(p.img)} {...IMG} loading="lazy" alt="" className="h-[160px] w-auto mix-blend-multiply transition group-hover:scale-105" />
       </div>
