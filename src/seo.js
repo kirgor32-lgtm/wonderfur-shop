@@ -41,7 +41,7 @@ const crumbs = (list) => ({
 const productLd = (p) => ({
   '@type': 'Product',
   '@id': abs(productPath(p) + '#product'),
-  name: `${p.line} ${p.name}`,
+  name: `${p.line} ${p.name.replace(/^Для/, "для")}`,
   description: `${p.text} ${p.more}`,
   image: abs(`img/p/${p.id}.webp`),
   brand: { '@type': 'Brand', name: p.line },
@@ -83,7 +83,7 @@ const productLd = (p) => ({
 const listLd = (list, name) => ({
   '@type': 'ItemList',
   name,
-  itemListElement: list.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: abs(productPath(p)), name: `${p.line} ${p.name}` })),
+  itemListElement: list.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: abs(productPath(p)), name: `${p.line} ${p.name.replace(/^Для/, "для")}` })),
 })
 
 // Все страницы сайта: path (без BASE, со слэшем на конце или '') → описание
