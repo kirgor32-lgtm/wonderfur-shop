@@ -299,7 +299,7 @@ function Hero({ nav }) {
       {/* большой баннер, как промо-слайд «Золотого Яблока»: серый фон, крупный текст, товары справа */}
       <div className="relative grid overflow-hidden rounded-2xl bg-gray-1 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-center">
         <div className="relative z-10 p-5 sm:p-10 xl:p-16">
-          <span className="kicker hidden text-txt-2 sm:inline">суперпремиум · Новосибирск</span>
+          <span className="kicker hidden text-txt-2 sm:inline">суперпремиум · Санкт-Петербург</span>
           <h1 className="text-balance text-[24px] font-semibold leading-[1.1] tracking-[-0.02em] sm:mt-4 sm:text-[44px] sm:leading-[1.05] sm:tracking-[-0.03em] xl:text-[64px]">Корма Wonderfur для кошек и собак</h1>
           <p className="mt-2 text-[14px] leading-snug text-txt-2 sm:hidden">{products.length} рецептов · от {minAll} ₽ · доставка бесплатно</p>
           <p className="mt-4 hidden max-w-[460px] text-lg leading-snug text-txt-2 sm:block">
@@ -506,7 +506,7 @@ function Mission() {
           <span className="kicker text-white/60">о бренде</span>
           <h2 className="mt-4 text-[28px] font-semibold leading-[1.08] tracking-[-0.02em] md:text-[42px]">Флагманский бренд завода КРОКЕТ</h2>
           <p className="mt-6 max-w-[520px] text-lg text-white/70">
-            Сухие корма суперпремиум-класса из Новосибирска. Мы продаём их в Петербурге и бесплатно привозим в пункты 5Post.
+            Сухие корма суперпремиум-класса. Мы продаём их в Петербурге и бесплатно привозим в пункты 5Post.
           </p>
           <Link to={pages.about.path} className="mt-8 inline-flex h-12 items-center gap-1 rounded-full bg-white px-6 font-medium text-ink hover:bg-gray-2">о бренде и производителе <ChevronRight className="size-4" /></Link>
         </div>
@@ -715,7 +715,7 @@ function SeoText() {
       <div className="max-w-[900px] text-[15px] leading-relaxed text-txt-2">
         <h2 className="mb-3 text-xl font-semibold text-ink">Купить корм Wonderfur в Санкт-Петербурге</h2>
         <p>
-          В нашем магазине — вся линейка сухих кормов Wonderfur от новосибирского завода КРОКЕТ: семь рецептов для кошек (пять для стерилизованных, для котят и Urinary
+          В нашем магазине — вся линейка сухих кормов Wonderfur от российского завода КРОКЕТ: семь рецептов для кошек (пять для стерилизованных, для котят и Urinary
           при МКБ струвитного типа) и семь для собак (для взрослых всех пород, мелких пород и щенков). Корма для кошек и мелких собак — в пакетах 400 г, 2 кг и 5 кг,
           для взрослых собак всех пород — 800 г, 3 кг и 10 кг. Доставка бесплатная: привезём заказ в пункт выдачи 5Post в Санкт-Петербурге — постамат или кассу
           «Пятёрочки» и «Перекрёстка».
