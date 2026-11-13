@@ -21,7 +21,7 @@ export function RouterProvider({ initialPath, children }) {
   useEffect(() => {
     if (pendingHash.current) {
       const hash = pendingHash.current
-      setTimeout(() => document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth' }), 40)
+      setTimeout(() => document.getElementById(hash)?.scrollIntoView(), 0)
     } else {
       window.scrollTo({ top: 0 })
     }
