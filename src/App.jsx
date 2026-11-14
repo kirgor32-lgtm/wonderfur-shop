@@ -14,7 +14,8 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { cn } from '@/lib/utils'
 import { StoreProvider, useStore, rub, fmtPhone } from './store'
 import { RouterProvider, useRoute, Link } from './router'
-import { sendCode, checkCode, linkedChannels, setLinked, channelNames, findAccount, saveAccount, authLive, authLiveNow, messengerInfo, botLink } from './auth'
+import { sendCode, checkCode, linkedChannels, setLinked, channelNames, findAccount, saveAccount, authLiveNow, messengerInfo, botLink, setPassword, movePassword, linkEmail, emailOf, isEmail, phoneFor, authConfig } from './auth'
+import AuthFlow, { PassInput } from './AuthFlow'
 import { track, sendLead, crmEnabled, fetchOrderStatus } from './crm'
 import {
   BASE, contacts, seller, products, kinds, searchHints, benefits, stats, checks, posts, contactTopics, faq, pages,
@@ -93,11 +94,13 @@ function MaxIcon({ className }) {
 }
 function MessengerButtons({ className, stack }) {
   // кнопки всегда одной ширины: на телефоне — во всю ширину одна под другой, на компьютере — две равные колонки
-  const c = 'flex h-11 w-full items-center gap-2 rounded-lg bg-gray-2 px-4 text-sm font-semibold transition hover:bg-gray-3/50'
+  const c = 'flex h-11 w-full items-center gap-2 rounded-lg bg-gray-2 px-4 text-sm font-semibold transition hover:bg-gray-3/50 whitespace-nowrap'
   return (
-    <div className={cn('grid gap-2', !stack && 'sm:w-fit sm:grid-cols-2', className)}>
+    <div className={cn('@container', className)}>
+    <div className={cn('grid gap-2', !stack && '@min-[440px]:w-fit @min-[440px]:grid-cols-2')}>
       <a href={contacts.telegram} target="_blank" rel="noopener nofollow" className={c}><TgIcon className="size-5" /> Написать в Telegram</a>
       <a href={contacts.max} target="_blank" rel="noopener nofollow" className={c}><MaxIcon className="size-5" /> Написать в Max</a>
+    </div>
     </div>
   )
 }
@@ -310,7 +313,7 @@ function Hero({ nav }) {
             <Link to={kinds.dog.path} className="flex h-11 items-center justify-center rounded-full bg-white px-7 text-[15px] font-medium hover:bg-gray-2 sm:h-12">собакам</Link>
           </div>
         </div>
-        <div className="pointer-events-none relative -mt-2 flex h-[210px] min-w-0 items-end justify-center overflow-hidden px-4 sm:mt-0 sm:h-[380px] sm:pt-4 md:h-[480px] xl:h-[540px]">
+        <div data-overlap="ok" className="pointer-events-none relative -mt-2 flex h-[210px] min-w-0 items-end justify-center overflow-hidden px-4 sm:mt-0 sm:h-[380px] sm:pt-4 md:h-[480px] xl:h-[540px]">
           <img src={img('cat-sterile-turkey-duck')} {...IMG} alt="Упаковка Wonderfur для стерилизованных кошек с индейкой и уткой" fetchPriority="high" className="relative z-10 -mr-[6%] h-[80%] w-[30%] min-w-0 -rotate-6 object-contain object-bottom drop-shadow-xl" />
           <img src={img('dog-lamb-rice')} {...IMG} alt="Упаковка Wonderfur для взрослых собак с ягнёнком и рисом" fetchPriority="high" className="relative z-20 h-[92%] w-[36%] min-w-0 object-contain object-bottom drop-shadow-xl" />
           <img src={img('cat-kitten-turkey-chicken')} {...IMG} alt="Упаковка Wonderfur для котят" fetchPriority="high" className="relative z-10 -ml-[6%] h-[76%] w-[30%] min-w-0 rotate-6 object-contain object-bottom drop-shadow-xl" />
@@ -334,7 +337,7 @@ function Hero({ nav }) {
           </button>
         ))}
       </div>
-      <div className="no-scrollbar mt-6 grid grid-flow-col gap-3 overflow-x-auto md:grid-cols-4">
+      <div className="no-scrollbar mt-6 grid grid-flow-col gap-3 overflow-x-auto md:grid-flow-row md:grid-cols-2 lg:grid-cols-4">
         {[
           ['бесплатная доставка', 'до пунктов 5Post', Truck, pages.delivery.path],
           ['подбор корма', 'по возрасту и весу', Sparkles, null, 'pick'],
@@ -348,7 +351,7 @@ function Hero({ nav }) {
               <ChevronRight className="size-5 text-txt-2" />
             </>
           )
-          const cls = 'flex min-w-[230px] items-center gap-3 rounded-xl border border-gray-2 px-4 py-4 text-left transition-colors hover:border-ink'
+          const cls = 'flex min-w-[230px] md:min-w-0 items-center gap-3 rounded-xl border border-gray-2 px-4 py-4 text-left transition-colors hover:border-ink'
           return to ? <Link key={a} to={to} className={cls}>{inner}</Link> : <button key={a} onClick={() => nav.contact(t)} className={cls}>{inner}</button>
         })}
       </div>
@@ -508,7 +511,7 @@ function Mission() {
           <p className="mt-6 max-w-[520px] text-lg text-white/70">
             Сухие корма суперпремиум-класса. Мы продаём их в Петербурге и бесплатно привозим в пункты 5Post.
           </p>
-          <Link to={pages.about.path} className="mt-8 inline-flex h-12 items-center gap-1 rounded-full bg-white px-6 font-medium text-ink hover:bg-gray-2">о бренде и производителе <ChevronRight className="size-4" /></Link>
+          <Link to={pages.about.path} className="mt-8 inline-flex h-12 items-center gap-1 whitespace-nowrap rounded-full bg-white px-5 text-[15px] font-medium text-ink hover:bg-gray-2 sm:px-6 sm:text-base">о бренде и производителе <ChevronRight className="size-4" /></Link>
         </div>
         <div className="grid grid-cols-2 gap-px border-t border-white/15 bg-white/15 md:border-l md:border-t-0">
           {stats.map(([n, l]) => (
@@ -657,7 +660,7 @@ function Contacts({ topic, setTopic, as = 'h2', title = 'Связаться с �
       <div className="wrap">
         <SectionTitle as={as}>{title}</SectionTitle>
         <Tabs value={topic} onValueChange={setTopic} className="mt-6 gap-6">
-          <TabsList className="no-scrollbar h-10 w-full touch-pan-x justify-start gap-2 overflow-x-auto overflow-y-hidden bg-transparent p-0 group-data-horizontal/tabs:h-10">
+          <TabsList className="h-auto w-full flex-wrap justify-start gap-2 bg-transparent p-0 group-data-horizontal/tabs:h-auto">
             {contactTopics.map((t) => (
               <TabsTrigger key={t.id} value={t.id} className="h-10 flex-none rounded-full border-0 bg-white px-5 text-[15px] text-ink shadow-none data-[state=active]:bg-violet-dark data-[state=active]:text-white">{t.label}</TabsTrigger>
             ))}
@@ -1219,7 +1222,7 @@ function Panels({ nav }) {
 
       <Sheet open={st.panel === 'profile'} onOpenChange={(o) => !o && close()}>
         <SheetContent className={side}>
-          {head('Личный кабинет', st.user ? st.user.phone : 'Вход по номеру телефона')}
+          {head('Личный кабинет', st.user ? st.user.phone : 'Вход и регистрация')}
           <div className="flex-1 overflow-y-auto p-5">{st.user ? <Profile nav={nav} /> : <Login />}</div>
         </SheetContent>
       </Sheet>
@@ -1377,9 +1380,9 @@ function Checkout() {
   if (step === 'auth')
     return box(false,
       <>
-        <DialogTitle className="text-2xl font-extrabold">Войдите или зарегистрируйтесь</DialogTitle>
-        <DialogDescription className="text-[15px] text-txt-2">Сумма заказа {sum}. Введите номер телефона — пришлём код для входа.</DialogDescription>
-        <AuthFlow />
+        <DialogTitle className="sr-only">Вход или регистрация</DialogTitle>
+        <DialogDescription className="sr-only">Сумма заказа {sum}</DialogDescription>
+        <AuthFlow note={`Сумма заказа ${sum}. Войдите или зарегистрируйтесь, чтобы оформить заказ.`} />
       </>
     )
   return box(!!st.items.length,
@@ -1421,117 +1424,7 @@ function Checkout() {
 }
 
 function Login() {
-  return (
-    <>
-      <div className="mb-3 rounded-lg bg-violet-soft p-4 text-sm">Войдите, чтобы видеть свои заказы и избранное. Если к номеру привязан Telegram или Max, код придёт туда.</div>
-      <AuthFlow />
-    </>
-  )
-}
-
-// Вход по номеру: телефон → код → если покупатель новый, анкета (имя, фамилия по желанию, дата рождения)
-function AuthFlow() {
-  const st = useStore()
-  const [f, setF] = useState({ phone: '', code: '', ok: false, trap: '', name: '', surname: '', birth: '' })
-  const [step, setStep] = useState('phone') // phone | code | profile
-  const [err, setErr] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [sent, setSent] = useState(null) // { channel, demoCode }
-  const [wait, setWait] = useState(0)
-  const [demo, setDemo] = useState(['telegram']) // только демо: какие мессенджеры «есть» у номера
-  const [live, setLive] = useState(authLiveNow()) // CRM на связи: код шлёт бот или смс
-  useEffect(() => { authLive().then(setLive) }, [])
-  const started = useRef(Date.now())
-  useEffect(() => {
-    if (!wait) return
-    const t = setTimeout(() => setWait(wait - 1), 1000)
-    return () => clearTimeout(t)
-  }, [wait])
-  const today = new Date().toISOString().slice(0, 10)
-  const request = async (via = '') => {
-    setBusy(true)
-    const res = await sendCode(f.phone, { trap: f.trap, startedAt: started.current, via, demoLinked: live ? null : [...new Set([...demo, ...linkedChannels(f.phone)])] })
-    setBusy(false)
-    if (res.resendIn) setWait(res.resendIn)
-    if (res.error) return setErr(res.error)
-    setErr(''); setSent({ ...res, via }); setF((x) => ({ ...x, code: '' })); setStep('code')
-  }
-  const next = async (e) => {
-    e.preventDefault()
-    if (busy) return
-    if (step === 'phone') {
-      if (f.phone.replace(/\D/g, '').length !== 11) return setErr('Введите телефон полностью')
-      if (!f.ok) return setErr('Нужно согласие на обработку данных')
-      return request()
-    }
-    if (step === 'code') {
-      if (f.code.length !== 4) return setErr('Введите 4 цифры')
-      setBusy(true)
-      const res = await checkCode(f.phone, f.code)
-      if (res.error) { setBusy(false); return setErr(res.error) }
-      const acc = await findAccount(f.phone) // есть ли учётная запись на этот номер
-      setBusy(false); setErr('')
-      if (acc) return st.setUser({ ...acc, phone: f.phone })
-      return setStep('profile')
-    }
-    if (f.name.trim().length < 2) return setErr('Введите имя')
-    if (!f.birth || f.birth > today || f.birth < '1900-01-01') return setErr('Укажите дату рождения')
-    const acc = { name: f.name.trim(), surname: f.surname.trim(), birth: f.birth }
-    setBusy(true)
-    await saveAccount(f.phone, acc)
-    setBusy(false)
-    st.setUser({ ...acc, phone: f.phone })
-  }
-  const where = sent?.channel === 'sms' ? `по смс на ${f.phone}` : `в ${channelNames[sent?.channel]} — на аккаунт с номером ${f.phone}`
-  const inp = 'h-12 rounded-lg bg-white text-[16px]'
-  return (
-    <form onSubmit={next} noValidate className="space-y-3">
-      {step === 'phone' && (
-        <>
-          <Input aria-label="Телефон" type="tel" autoComplete="tel" placeholder="Телефон" inputMode="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: fmtPhone(e.target.value) })} className={inp} />
-          {/* поле-ловушка для ботов: людям не видно */}
-          <input type="text" name="company" tabIndex={-1} autoComplete="off" aria-hidden="true" value={f.trap} onChange={(e) => setF({ ...f, trap: e.target.value })} className="absolute -left-[9999px] h-px w-px opacity-0" />
-          {!live && (
-            <div className="rounded-lg border border-dashed border-gray-3 p-3 text-xs text-txt-2">
-              <div className="mb-2">Демо — что есть у этого номера (на сайте с сервером это проверится само):</div>
-              <div className="flex flex-wrap gap-1.5">
-                {[['Telegram', ['telegram']], ['Max', ['max']], ['Оба', ['telegram', 'max']], ['Ничего', []]].map(([l, v]) => (
-                  <button key={l} type="button" onClick={() => setDemo(v)} aria-pressed={demo.join() === v.join()}
-                    className={cn('rounded-full px-3 py-1 font-semibold', demo.join() === v.join() ? 'bg-ink text-white' : 'bg-white text-ink ring-1 ring-gray-2')}>{l}</button>
-                ))}
-              </div>
-            </div>
-          )}
-          <Consent checked={f.ok} onChange={(ok) => setF({ ...f, ok })} />
-        </>
-      )}
-      {step === 'code' && (
-        <>
-          <p className="text-[15px]">{sent?.channel === 'sms' && sent?.via !== 'sms' ? 'Telegram и Max у этого номера не нашли, поэтому код отправлен' : 'Код отправлен'} {where}. <button type="button" className="text-violet-dark underline" onClick={() => { setStep('phone'); setErr('') }}>Изменить номер</button></p>
-          <Input aria-label="Код" autoFocus placeholder="Код" inputMode="numeric" autoComplete="one-time-code" maxLength={4} value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.replace(/\D/g, '') })} className="h-12 rounded-lg bg-white text-center text-xl tracking-[.5em]" />
-          {sent?.demoCode && <p className="text-xs text-txt-2">Демо: смс пока не отправляются, ваш код — {sent.demoCode}</p>}
-          <button type="button" disabled={wait > 0 || busy} onClick={() => request('sms')} className="block text-sm text-violet-dark underline disabled:text-txt-2 disabled:no-underline">
-            {sent?.channel === 'sms' ? (wait > 0 ? `Отправить код повторно через ${wait} с` : 'Отправить код повторно') : `Не пришёл в ${channelNames[sent?.channel]}? Отправить по смс${wait > 0 ? ` через ${wait} с` : ''}`}
-          </button>
-        </>
-      )}
-      {step === 'profile' && (
-        <>
-          <p className="text-[15px]">Номер {f.phone} у нас впервые. Расскажите немного о себе — это займёт полминуты.</p>
-          <Input aria-label="Имя" autoFocus autoComplete="given-name" placeholder="Имя" maxLength={60} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className={inp} />
-          <Input aria-label="Фамилия (необязательно)" autoComplete="family-name" placeholder="Фамилия (необязательно)" maxLength={60} value={f.surname} onChange={(e) => setF({ ...f, surname: e.target.value })} className={inp} />
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold">Дата рождения</span>
-            <Input type="date" autoComplete="bday" min="1900-01-01" max={today} value={f.birth} onChange={(e) => setF({ ...f, birth: e.target.value })} className={inp} />
-          </label>
-        </>
-      )}
-      {err && <p role="alert" className="text-sm text-destructive">{err}</p>}
-      <Button type="submit" disabled={busy} className={cn(inkBtn, 'h-12 w-full text-base')}>
-        {busy ? <Loader2 className="size-5 animate-spin" /> : step === 'phone' ? 'Получить код' : step === 'code' ? 'Продолжить' : 'Сохранить и продолжить'}
-      </Button>
-    </form>
-  )
+  return <AuthFlow note="Войдите, чтобы видеть свои заказы, избранное и пользоваться личным кабинетом." />
 }
 
 // Привязка мессенджеров: покупатель открывает нашего бота и делится номером — коды для входа приходят туда, а не по смс
@@ -1572,7 +1465,7 @@ function LinkedMessengers() {
 function EditProfile({ onClose }) {
   const st = useStore()
   const u = st.user
-  const [f, setF] = useState({ name: u.name || '', surname: u.surname || '', birth: u.birth || '', phone: u.phone, code: '' })
+  const [f, setF] = useState({ name: u.name || '', surname: u.surname || '', birth: u.birth || '', phone: u.phone, code: '', email: emailOf(u.phone), newPass: '' })
   const [step, setStep] = useState('form') // form | code
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
@@ -1584,7 +1477,9 @@ function EditProfile({ onClose }) {
   const finish = async (phone) => {
     const acc = { name: f.name.trim(), surname: f.surname.trim(), birth: f.birth }
     await saveAccount(phone, acc)
-    if (phone !== u.phone) await saveAccount(u.phone, null) // старый номер больше не ведёт в этот аккаунт
+    if (phone !== u.phone) { movePassword(u.phone, phone); await saveAccount(u.phone, null) } // старый номер больше не ведёт в этот аккаунт
+    if (f.newPass) await setPassword(phone, f.newPass)
+    if (!authLiveNow()) linkEmail(f.email.trim(), phone)
     st.setUser({ ...u, ...acc, phone })
     onClose(true)
   }
@@ -1602,6 +1497,9 @@ function EditProfile({ onClose }) {
     if (f.name.trim().length < 2) return setErr('Введите имя')
     if (f.birth && (f.birth > today || f.birth < '1900-01-01')) return setErr('Проверьте дату рождения')
     if (f.phone.replace(/\D/g, '').length !== 11) return setErr('Введите телефон полностью')
+    if (f.email.trim() && !isEmail(f.email)) return setErr('Проверьте адрес почты')
+    if (f.newPass && f.newPass.length < authConfig.minPassword) return setErr(`Пароль — не короче ${authConfig.minPassword} символов`)
+    if (f.email.trim() && phoneFor(f.email) && phoneFor(f.email) !== u.phone.replace(/\D/g, '')) return setErr('Эта почта уже привязана к другому аккаунту')
     setBusy(true)
     if (same) { await finish(u.phone); return setBusy(false) }
     if (await findAccount(f.phone)) { setBusy(false); return setErr('Этот номер уже привязан к другому аккаунту') }
@@ -1619,6 +1517,8 @@ function EditProfile({ onClose }) {
           <label className="block"><span className="mb-1 block text-xs text-txt-2">Фамилия (необязательно)</span><Input autoComplete="family-name" maxLength={60} value={f.surname} onChange={(e) => setF({ ...f, surname: e.target.value })} className={inp} /></label>
           <label className="block"><span className="mb-1 block text-xs text-txt-2">Дата рождения</span><Input type="date" autoComplete="bday" min="1900-01-01" max={today} value={f.birth} onChange={(e) => setF({ ...f, birth: e.target.value })} className={inp} /></label>
           <label className="block"><span className="mb-1 block text-xs text-txt-2">Телефон — для входа и смс о заказах</span><Input type="tel" autoComplete="tel" inputMode="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: fmtPhone(e.target.value) })} className={inp} /></label>
+          {!authLiveNow() && <label className="block"><span className="mb-1 block text-xs text-txt-2">Почта — можно входить по ней (необязательно)</span><Input type="email" autoComplete="email" inputMode="email" maxLength={120} value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} className={inp} /></label>}
+          <label className="block"><span className="mb-1 block text-xs text-txt-2">Новый пароль — если хотите сменить</span><PassInput value={f.newPass} onChange={(v) => setF({ ...f, newPass: v })} placeholder="Новый пароль" autoComplete="new-password" /></label>
           {!same && <p className="text-xs text-txt-2">Новый номер подтвердим кодом.</p>}
         </>
       ) : (
