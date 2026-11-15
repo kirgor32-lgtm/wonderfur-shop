@@ -295,6 +295,31 @@ export const kinds = {
     desc: `Сухой корм Wonderfur для собак: взрослым всех пород, мелким породам и щенкам. Фасовки от 400 г до 10 кг. Цены от ${from('dog')} ₽, бесплатная доставка до пунктов 5Post в СПб.`,
     intro: `${count('dog')} рецептов для собак: три для взрослых собак всех пород, три для мелких пород и для щенков мелких и средних пород. Фасовки от 400 г до 10 кг. Бесплатная доставка до пунктов выдачи 5Post в Санкт-Петербурге.` },
 }
+// Подборки внутри разделов — свои страницы с адресом (а не фильтр на главной), чтобы их находили поисковики.
+// Состав подборки считается по товарам, поэтому новые/скрытые в CRM товары учитываются сами.
+const segOf = (test) => products.filter(test)
+const segFrom = (test) => fmt(Math.min(...segOf(test).flatMap((p) => p.weights.map((w) => w.price))))
+const segWeights = (test) => [...new Set(segOf(test).flatMap((p) => p.weights.map((w) => w.w)))].join(', ')
+const seg = (o) => ({ ...o, get count() { return segOf(o.test).length }, get from() { return segFrom(o.test) }, get weights() { return segWeights(o.test) } })
+export const segments = {
+  sterile: seg({ kind: 'cat', path: 'koshkam/sterilizovannym/', menu: 'Стерилизованным', story: 'стерилизованным', img: 'cat-sterile-turkey-lamb',
+    test: (p) => p.kind === 'cat' && /стерилиз/i.test(p.ageLabel), h1: 'Корм для стерилизованных кошек Wonderfur', what: 'для стерилизованных кошек и кастрированных котов' }),
+  kitten: seg({ kind: 'cat', path: 'koshkam/kotyatam/', menu: 'Котятам', story: 'котятам', img: 'cat-kitten-turkey-chicken',
+    test: (p) => p.kind === 'cat' && p.age === 'young', h1: 'Корм для котят Wonderfur', what: 'для котят' }),
+  urinary: seg({ kind: 'cat', path: 'koshkam/pri-mkb/', menu: 'При МКБ', story: 'при МКБ', img: 'cat-urinary',
+    test: (p) => p.kind === 'cat' && /МКБ/.test(p.ageLabel), h1: 'Корм Wonderfur Urinary для кошек при МКБ', what: 'для кошек с МКБ струвитного типа' }),
+  small: seg({ kind: 'dog', path: 'sobakam/melkim-porodam/', menu: 'Мелким породам', story: 'мелким породам', img: 'dog-small-chicken-potato',
+    test: (p) => p.kind === 'dog' && /мелких пород/.test(p.ageLabel) && p.age !== 'young', h1: 'Корм для собак мелких пород Wonderfur', what: 'для взрослых собак мелких пород' }),
+  puppy: seg({ kind: 'dog', path: 'sobakam/shchenkam/', menu: 'Щенкам', story: 'щенкам', img: 'dog-puppy-turkey-rice',
+    test: (p) => p.kind === 'dog' && p.age === 'young', h1: 'Корм для щенков Wonderfur', what: 'для щенков' }),
+  young: seg({ kind: '', path: 'kotyatam-i-shchenkam/', menu: 'Котятам и щенкам', img: 'cat-kitten-turkey-chicken',
+    test: (p) => p.age === 'young', h1: 'Корм для котят и щенков Wonderfur', what: 'для котят и щенков' }),
+}
+for (const s of Object.values(segments)) {
+  s.title = `${s.h1} — купить в Санкт-Петербурге`
+  Object.defineProperty(s, 'desc', { get: () => `${s.h1}: ${s.count} ${s.count === 1 ? 'рецепт' : s.count < 5 ? 'рецепта' : 'рецептов'}, фасовки ${s.weights}. Цены от ${s.from} ₽, бесплатная доставка до пунктов 5Post в СПб.` })
+  Object.defineProperty(s, 'intro', { get: () => `Сухие корма Wonderfur ${s.what}: ${s.count} ${s.count === 1 ? 'рецепт' : s.count < 5 ? 'рецепта' : 'рецептов'} от российского завода КРОКЕТ, фасовки ${s.weights}. Цены от ${s.from} ₽. Бесплатная доставка до пунктов выдачи 5Post в Санкт-Петербурге.` })
+}
 export const minAll = fmt(Math.min(...products.flatMap((p) => p.weights.map((w) => w.price))))
 export const productPath = (p) => `${kinds[p.kind].path}${p.slug}/`
 export const minPrice = (p) => Math.min(...p.weights.map((w) => w.price))

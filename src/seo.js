@@ -1,5 +1,5 @@
 // Маршруты и SEO-данные каждой страницы. Используется и при пререндере, и в браузере.
-import { SITE, BASE, products, kinds, pages, posts, faq, contacts, productPath, minPrice, img, declaration, minAll } from './data'
+import { SITE, BASE, products, kinds, segments, pages, posts, faq, contacts, productPath, minPrice, img, declaration, minAll } from './data'
 
 const abs = (p = '') => `${SITE}/${p}`
 const cut = (t, n) => (t.length <= n ? t : t.slice(0, t.lastIndexOf(' ', n - 1)).replace(/[,.:;—-]+$/, '') + '…')
@@ -91,6 +91,7 @@ export function routes() {
   const r = [
     { path: '', type: 'home' },
     ...Object.keys(kinds).map((k) => ({ path: kinds[k].path, type: 'kind', kind: k })),
+    ...Object.keys(segments).filter((s) => segments[s].count).map((s) => ({ path: segments[s].path, type: 'segment', seg: s })),
     ...products.map((p) => ({ path: productPath(p), type: 'product', id: p.id })),
     { path: pages.blog.path, type: 'blog' },
     ...posts.map((p) => ({ path: `blog/${p.slug}/`, type: 'post', slug: p.slug })),
@@ -124,6 +125,14 @@ export function head(route) {
       title = k.title
       desc = k.desc
       ld = [crumbs([['Главная', ''], [k.h1, k.path]]), listLd(products.filter((x) => x.kind === route.kind), k.h1)]
+      break
+    }
+    case 'segment': {
+      const s = segments[route.seg]
+      const list = products.filter(s.test)
+      title = s.title
+      desc = s.desc
+      ld = [crumbs([['Главная', ''], ...(s.kind ? [[kinds[s.kind].h1, kinds[s.kind].path]] : []), [s.h1, s.path]]), listLd(list, s.h1)]
       break
     }
     case 'product': {

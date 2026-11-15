@@ -18,7 +18,7 @@ import { sendCode, checkCode, linkedChannels, setLinked, channelNames, findAccou
 import AuthFlow, { PassInput, CallBox } from './AuthFlow'
 import { track, sendLead, crmEnabled, fetchOrderStatus } from './crm'
 import {
-  BASE, contacts, seller, products, kinds, searchHints, benefits, stats, checks, posts, contactTopics, faq, pages,
+  BASE, contacts, seller, products, kinds, segments, searchHints, benefits, stats, checks, posts, contactTopics, faq, pages,
   productPath, minPrice, img, declaration, manufacturer, minAll,
 } from './data'
 
@@ -55,6 +55,7 @@ function Shell() {
   switch (route.type) {
     case 'home': page = <Home filter={filter} setFilter={setFilter} nav={nav} topic={topic} setTopic={setTopic} />; break
     case 'kind': page = <KindPage kind={route.kind} />; break
+    case 'segment': page = <SegmentPage id={route.seg} />; break
     case 'product': page = <ProductPage p={byId(route.id)} />; break
     case 'blog': page = <BlogPage />; break
     case 'post': page = <PostPage post={posts.find((x) => x.slug === route.slug)} />; break
@@ -119,8 +120,8 @@ function Logo({ light, onClick }) {
 const mainNav = [
   ['кошкам', kinds.cat.path],
   ['собакам', kinds.dog.path],
-  ['стерилизованным', null, { q: 'стерилизованных' }],
-  ['котятам и щенкам', null, { age: 'young' }],
+  ['стерилизованным', segments.sterile.path],
+  ['котятам и щенкам', segments.young.path],
   ['доставка и оплата', pages.delivery.path],
   ['о бренде', pages.about.path],
   ['блог', pages.blog.path],
@@ -322,19 +323,16 @@ function Hero({ nav }) {
       {/* круглые «истории»-категории, как на «Золотом Яблоке» */}
       <div className="no-scrollbar -mx-1 mt-5 flex gap-4 overflow-x-auto px-1 pb-1 pt-1 sm:gap-6">
         {[
-          ['стерилизованным', 'cat-sterile-turkey-lamb', { q: 'стерилизованных' }],
-          ['котятам', 'cat-kitten-turkey-chicken', { kind: 'cat', age: 'kitten' }],
-          ['при МКБ', 'cat-urinary', { q: 'Urinary' }],
-          ['собакам', 'dog-beef-rice', { kind: 'dog' }],
-          ['мелким породам', 'dog-small-chicken-potato', { q: 'мелких пород' }],
-          ['щенкам', 'dog-puppy-turkey-rice', { kind: 'dog', age: 'puppy' }],
-        ].map(([l, im, f]) => (
-          <button key={l} onClick={() => nav.show(f)} className="group flex w-[84px] shrink-0 flex-col items-center gap-2 sm:w-[104px]">
+          ...['sterile', 'kitten', 'urinary'].map((s) => [segments[s].story, segments[s].img, segments[s].path]),
+          ['собакам', 'dog-beef-rice', kinds.dog.path],
+          ...['small', 'puppy'].map((s) => [segments[s].story, segments[s].img, segments[s].path]),
+        ].map(([l, im, to]) => (
+          <Link key={l} to={to} className="group flex w-[84px] shrink-0 flex-col items-center gap-2 sm:w-[104px]">
             <span className="flex size-[84px] items-center justify-center overflow-hidden rounded-full bg-gray-1 ring-1 ring-transparent transition group-hover:ring-ink sm:size-[104px]">
               <img src={img(im)} {...IMG} loading="lazy" alt="" className="h-[78%] w-[78%] object-contain transition group-hover:scale-105" />
             </span>
             <span className="text-center text-[13px] leading-tight">{l}</span>
-          </button>
+          </Link>
         ))}
       </div>
       <div className="no-scrollbar mt-6 grid grid-flow-col gap-3 overflow-x-auto md:grid-flow-row md:grid-cols-2 lg:grid-cols-4">
@@ -758,6 +756,37 @@ function KindPage({ kind }) {
   )
 }
 
+// Подборка внутри раздела: «стерилизованным», «котятам»… — своя страница для поисковиков
+function SegmentPage({ id }) {
+  const s = segments[id]
+  const k = s.kind && kinds[s.kind]
+  const list = products.filter(s.test)
+  const near = Object.entries(segments).filter(([x, o]) => x !== id && o.count && (!s.kind || !o.kind || o.kind === s.kind) && o.kind)
+  return (
+    <>
+      <Crumbs items={[...(k ? [[k.menu, k.path]] : []), [s.menu, s.path]]} />
+      <div className="wrap pb-2 pt-4">
+        <h1 className="text-[30px] font-extrabold leading-tight tracking-tight md:text-[44px]">{s.h1}</h1>
+        <p className="mt-3 max-w-[760px] text-[17px] text-txt-2">{s.intro}</p>
+      </div>
+      <section className="wrap py-10">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
+          {list.map((p) => <ProductCard key={p.id} p={p} />)}
+        </div>
+        <p className="mt-6 text-xs text-txt-2">Цены указаны в рублях с НДС. Доставка до пунктов выдачи 5Post в Санкт-Петербурге — бесплатно.</p>
+      </section>
+      <section className="wrap pb-14">
+        <h2 className="text-2xl font-extrabold">Ещё корма</h2>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {(k ? [[k.h1, k.path]] : [[kinds.cat.h1, kinds.cat.path], [kinds.dog.h1, kinds.dog.path]]).concat(near.map(([, o]) => [o.h1, o.path])).map(([t, to]) => (
+            <Link key={to} to={to} className="inline-flex items-center gap-1 rounded-[2px] border border-ink bg-white px-3 py-2 text-sm font-semibold hover:bg-gray-2">{t} <ChevronRight className="size-4" /></Link>
+          ))}
+        </div>
+      </section>
+    </>
+  )
+}
+
 /* ---------------- карточка товара ---------------- */
 function ProductPage({ p }) {
   const st = useStore()
@@ -1009,7 +1038,7 @@ function Footer({ nav }) {
   const cols = [
     ['Покупателям', [['Доставка и оплата', pages.delivery.path], ['Возврат и обмен', pages.returns.path], ['Частые вопросы', pages.faq.path], ['Контакты', pages.contacts.path]]],
     ['О бренде', [['О бренде и заводе', pages.about.path], ['Блог о питании', pages.blog.path], ['Заводчикам', null, 'breeders'], ['Оптовым покупателям', null, 'sales']]],
-    ['Каталог', [['Корм для кошек', kinds.cat.path], ['Корм для собак', kinds.dog.path], ['Корм для котят', productPath(byId('cat-kitten-turkey-chicken'))], ['Корм для щенков', productPath(byId('dog-puppy-turkey-rice'))]]],
+    ['Каталог', [['Корм для кошек', kinds.cat.path], ['Корм для собак', kinds.dog.path], ['Корм для котят', segments.kitten.path], ['Корм для щенков', segments.puppy.path], ['Для стерилизованных', segments.sterile.path]]],
   ]
   return (
     <footer className="mt-10 bg-ink pb-24 pt-14 text-white md:pb-10">
@@ -1282,10 +1311,11 @@ function Panels({ nav }) {
             <div className="mb-2 text-lg font-extrabold">Каталог</div>
             <MenuLink to={kinds.cat.path} onClick={close}>Корм для кошек</MenuLink>
             <MenuLink to={kinds.dog.path} onClick={close}>Корм для собак</MenuLink>
-            <MenuLink to={productPath(byId('cat-kitten-turkey-chicken'))} onClick={close}>Для котят</MenuLink>
-            <MenuLink to={productPath(byId('dog-puppy-turkey-rice'))} onClick={close}>Для щенков</MenuLink>
-            <MenuLink to={productPath(byId('cat-sterile-turkey-lamb'))} onClick={close}>Для стерилизованных кошек</MenuLink>
-            <MenuLink to={productPath(byId('dog-small-turkey-potato'))} onClick={close}>Для мелких пород собак</MenuLink>
+            <MenuLink to={segments.kitten.path} onClick={close}>Для котят</MenuLink>
+            <MenuLink to={segments.puppy.path} onClick={close}>Для щенков</MenuLink>
+            <MenuLink to={segments.sterile.path} onClick={close}>Для стерилизованных кошек</MenuLink>
+            <MenuLink to={segments.small.path} onClick={close}>Для мелких пород собак</MenuLink>
+            <MenuLink to={segments.urinary.path} onClick={close}>Для кошек при МКБ</MenuLink>
             <div className="mb-2 mt-5 text-lg font-extrabold">Информация</div>
             <MenuLink to={pages.delivery.path} onClick={close}>Доставка и оплата</MenuLink>
             <MenuLink to={pages.returns.path} onClick={close}>Возврат и обмен</MenuLink>
