@@ -1388,29 +1388,43 @@ function Checkout() {
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
   const sending = useRef(false) // защита от двойного нажатия
-  const [pay, setPay] = useState(null) // адрес выбран → шаг оплаты
-  const step = done ? 'done' : !st.user ? 'auth' : pay ? 'pay' : 'point'
+  const step = done ? 'done' : !st.user ? 'auth' : 'point'
   const fullName = st.user ? [st.user.name, st.user.surname].filter(Boolean).join(' ') : ''
   const submit = (e) => {
     e.preventDefault()
     if (sending.current) return
     const where = manual ? point.trim() : pt ? `${pt.b === 'p' ? 'Пятёрочка' : 'Перекрёсток'}, ${pt.a}` : ''
     if (where.length < 5) return setErr(manual ? 'Укажите адрес пункта выдачи' : 'Выберите пункт на карте или в списке')
-    setErr(''); setPay({ where, n: String(Date.now()).slice(-6) })
+    setErr('')
+    const n = String(Date.now()).slice(-6)
+    setBusy(true)
+    // Окно оплаты Fable открывается само по себе (на телефоне — шторка снизу, на компьютере — окно по центру),
+    // поэтому наше окно оформления на это время закрываем: иначе оно перехватывает клики
+    openPay({ amount: st.totalWithDiscount, orderId: n })
+      .then((PW) => {
+        setBusy(false)
+        st.setCheckout(false)
+        let paid = false
+        PW.open({
+          orderId: n, amount: st.totalWithDiscount, currency: 'RUB', description: `Заказ №${n} в магазине Wonderfur`,
+          customerId: payCustomer(), backendUrl: PAY_API,
+          onSuccess: () => { paid = true; finish(where, n) },
+          onClose: () => { if (!paid) st.setCheckout(true) },
+        })
+      })
+      .catch(() => { setBusy(false); setErr('Не загрузилось окно оплаты. Проверьте интернет и попробуйте ещё раз') })
   }
-  // ТЕСТОВАЯ ОПЛАТА: настоящих списаний нет, после «Оплатить» заказ уходит как оплаченный
-  const payNow = () => {
+  // Оплачено в виджете (сейчас тестовый режим — без списаний) → заказ уходит как оплаченный
+  const finish = (where, n) => {
     if (sending.current) return
     sending.current = true
-    setBusy(true)
-    setTimeout(() => {
-      const o = st.placeOrder({ name: fullName, phone: st.user.phone, delivery: `5Post: ${pay.where}` }, { paid: true, n: pay.n })
-      try { sessionStorage.setItem(THANKS_KEY, JSON.stringify({ type: 'order', n: o.n, name: st.user?.name || '' })) } catch {}
-      setBusy(false); sending.current = false
-      track('order_done', { n: o.n })
-      st.setCheckout(false)
-      navigate(THANKS_PATH)
-    }, 300)
+    const o = st.placeOrder({ name: fullName, phone: st.user.phone, delivery: `5Post: ${where}` }, { paid: true, n })
+    try { sessionStorage.setItem(THANKS_KEY, JSON.stringify({ type: 'order', n: o.n, name: st.user?.name || '' })) } catch {}
+    sending.current = false
+    track('order_done', { n: o.n })
+    st.setCheckout(false)
+    // окно Fable показывает «Оплачено» — даём его увидеть, потом страница «спасибо»
+    setTimeout(() => { window.PayWidget?.close?.(); navigate(THANKS_PATH) }, 1800)
   }
   const box = (wide, kids) => <DialogContent className={cn('max-h-[94dvh] overflow-y-auto rounded-lg bg-gray-1', wide ? 'max-w-[960px] p-5 sm:max-w-[960px] sm:p-7' : 'max-w-[520px] p-7')}>{kids}</DialogContent>
   const sum = st.discount ? `${rub(st.totalWithDiscount)} (со скидкой ${rub(st.discount)})` : rub(st.total)
@@ -1433,14 +1447,6 @@ function Checkout() {
         <DialogTitle className="sr-only">Вход или регистрация</DialogTitle>
         <DialogDescription className="sr-only">Сумма заказа {sum}</DialogDescription>
         <AuthFlow note={`Сумма заказа ${sum}. Войдите или зарегистрируйтесь, чтобы оформить заказ.`} />
-      </>
-    )
-  if (step === 'pay')
-    return box(false,
-      <>
-        <DialogTitle className="text-2xl font-extrabold">Оплата заказа</DialogTitle>
-        <DialogDescription className="text-[15px] text-txt-2">К оплате {rub(st.totalWithDiscount)}. Пункт выдачи: {pay.where}</DialogDescription>
-        <PayWidget amount={st.totalWithDiscount} orderId={pay.n} busy={busy} onPay={payNow} onBack={() => setPay(null)} />
       </>
     )
   return box(!!st.items.length,
@@ -1499,33 +1505,7 @@ const payCustomer = () => {
     return id
   } catch { return undefined }
 }
-function PayWidget({ amount, orderId, onPay, onBack, busy }) {
-  const ref = useRef(null)
-  const [err, setErr] = useState('')
-  const cb = useRef(onPay); cb.current = onPay
-  useEffect(() => {
-    let inst, dead = false
-    loadPay().then((PW) => {
-      if (dead || !ref.current) return
-      inst = PW.mount(ref.current, {
-        orderId, amount, currency: 'RUB', description: `Заказ №${orderId} в магазине Wonderfur`,
-        customerId: payCustomer(), backendUrl: PAY_API,
-        theme: { primary: '#2b2b30', radius: '8px' },
-        onSuccess: () => cb.current(),
-        onFail: () => {},
-      })
-    }).catch(() => setErr('Не загрузилась форма оплаты. Проверьте интернет и попробуйте ещё раз'))
-    return () => { dead = true; inst?.unmount?.() }
-  }, [orderId, amount])
-  return (
-    <div className="space-y-3">
-      {busy ? <div className="flex h-[200px] items-center justify-center gap-2 text-txt-2"><Loader2 className="size-5 animate-spin" />Оформляем заказ…</div> : <div ref={ref} className="min-h-[200px]" />}
-      {err && <p role="alert" className="text-sm text-destructive">{err}</p>}
-      <p className="text-xs text-txt-2">Тестовый режим: деньги не списываются.</p>
-      {!busy && <button type="button" onClick={onBack} className="text-sm text-violet-dark underline">Изменить пункт выдачи</button>}
-    </div>
-  )
-}
+const openPay = () => loadPay()
 
 function Login() {
   return <AuthFlow note="Войдите, чтобы видеть свои заказы, избранное и пользоваться личным кабинетом." />
