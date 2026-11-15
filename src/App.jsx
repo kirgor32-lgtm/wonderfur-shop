@@ -669,8 +669,19 @@ function Contacts({ topic, setTopic, as = 'h2', title = 'Связаться с �
             <TabsContent key={t.id} value={t.id} forceMount inert={t.id !== topic} className={cn('[grid-area:1/1] mt-0', t.id !== topic && 'invisible')}>
               <div className="grid gap-8 md:grid-cols-[1fr_1.3fr] md:gap-10">
                 <div>
-                  <h3 className="text-2xl font-extrabold">{cap(t.label)}</h3>
-                  <p className="mt-3 text-[17px] leading-relaxed text-txt-2">{t.text}</p>
+                  {/* тексты всех вкладок в одной ячейке: высота = самый длинный, кнопки ниже не скачут */}
+                  <div className="grid">
+                    {contactTopics.map((o) => {
+                      const on = o.id === t.id
+                      const H = on ? 'h3' : 'div'
+                      return (
+                        <div key={o.id} aria-hidden={!on} className={cn('[grid-area:1/1]', !on && 'invisible')}>
+                          <H className="text-2xl font-extrabold">{cap(o.label)}</H>
+                          <p className="mt-3 text-[17px] leading-relaxed text-txt-2">{o.text}</p>
+                        </div>
+                      )
+                    })}
+                  </div>
                   <p className="mt-4 text-[15px]">Заполните форму или напишите нам — <b>ответим в течение дня</b>.</p>
                   <MessengerButtons className="mt-5" />
                   <div className="mt-6 space-y-2 text-[15px]">
