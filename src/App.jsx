@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, Fragment, lazy, Suspense } from 'react'
 const PickupPicker = lazy(() => import('./PickupPicker'))
 import {
-  Search, ShoppingBag, Heart, User, Menu, X, Minus, Plus, ChevronRight, Phone, Clock, LogOut, Package, Pencil,
+  Search, ShoppingBag, Heart, User, Menu, X, Minus, Plus, ChevronRight, ChevronDown, Phone, Clock, LogOut, Package, Pencil,
   Drumstick, Scale, HeartPulse, ShieldCheck, Factory, BadgeCheck, Check, Trash2, Loader2, Send, Truck, Sparkles, Sprout, Cookie,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -393,14 +393,10 @@ function Catalog({ filter, setFilter, title, fixedKind, as }) {
           {!fixedKind && <Pills label="Для кого" value={filter.kind} onChange={setKind} items={[['all', 'все корма'], ['cat', 'кошкам'], ['dog', 'собакам']]} />}
           {/* «все корма» — без деления по возрасту; повторный клик по возрасту снимает фильтр */}
           {kind !== 'all' && <Pills label="Возраст" small value={filter.age} onChange={(v) => setFilter((f) => ({ ...f, age: f.age === v ? 'all' : v }))} items={ages} />}
-          <label className="ml-auto flex items-center gap-2 text-sm text-txt-2">
+          <div className="ml-auto flex items-center gap-2 text-sm text-txt-2">
             <span>{list.length} {plural(list.length, 'товар', 'товара', 'товаров')} ·</span>
-            <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Сортировка" className="cursor-pointer bg-transparent font-medium text-ink outline-none">
-              <option value="pop">по популярности</option>
-              <option value="asc">сначала дешевле</option>
-              <option value="desc">сначала дороже</option>
-            </select>
-          </label>
+            <SortMenu value={sort} onChange={setSort} items={[['pop', 'по популярности'], ['asc', 'сначала дешевле'], ['desc', 'сначала дороже']]} />
+          </div>
         </div>
         {filter.q && (
           <p className="mt-4 text-[15px]">
@@ -423,6 +419,41 @@ function Catalog({ filter, setFilter, title, fixedKind, as }) {
 }
 
 // Фильтры — простые кнопки-переключатели (вкладки здесь не нужны: под ними нет отдельных панелей)
+function SortMenu({ value, onChange, items }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!open) return
+    const off = (e) => { if (!ref.current?.contains(e.target)) setOpen(false) }
+    const esc = (e) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('pointerdown', off)
+    document.addEventListener('keydown', esc)
+    return () => { document.removeEventListener('pointerdown', off); document.removeEventListener('keydown', esc) }
+  }, [open])
+  const cur = items.find(([v]) => v === value)?.[1]
+  return (
+    <div ref={ref} className="relative">
+      <button type="button" aria-haspopup="listbox" aria-expanded={open} aria-label={`Сортировка: ${cur}`} onClick={() => setOpen((o) => !o)}
+        className="flex h-9 items-center gap-1.5 rounded-full bg-gray-1 pl-4 pr-3 font-medium text-ink transition-colors hover:bg-gray-2">
+        {cur}<ChevronDown className={cn('size-4 transition-transform', open && 'rotate-180')} />
+      </button>
+      {open && (
+        <ul role="listbox" aria-label="Сортировка" className="absolute right-0 top-full z-30 mt-2 min-w-full overflow-hidden rounded-2xl bg-white p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+          {items.map(([v, l]) => (
+            <li key={v} role="option" aria-selected={v === value}>
+              <button type="button" onClick={() => { onChange(v); setOpen(false) }}
+                className={cn('flex w-full items-center justify-between gap-3 whitespace-nowrap rounded-xl px-3 py-2 text-left text-sm transition-colors',
+                  v === value ? 'font-semibold text-ink' : 'text-txt-2 hover:bg-gray-1 hover:text-ink')}>
+                {l}{v === value && <Check className="size-4" />}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 function Pills({ label, items, value, onChange, small }) {
   return (
     <div role="group" aria-label={label} className="flex flex-wrap gap-2">
