@@ -304,4 +304,10 @@ export async function messengerInfo() {
   const r = await post('me', { token: s.token }).catch(() => null)
   return r?.ok ? { linked: r.body.linked || [], bots: r.body.bots || [] } : null
 }
+// Подтвердил ли покупатель этот номер в нашем боте (сайт спрашивает, пока человек в Telegram/Max)
+export async function isLinked(login) {
+  if (!(await authLive())) return false
+  const r = await post('linked', { phone: digits(login) }).catch(() => null)
+  return !!r?.ok && !!r.body.linked
+}
 export const botLink = (b) => (b.type === 'telegram' ? `https://t.me/${b.username}` : `https://max.ru/${b.username}`)

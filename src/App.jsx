@@ -1396,7 +1396,7 @@ function Checkout() {
     if (sending.current) return
     const where = manual ? point.trim() : pt ? `${pt.b === 'p' ? 'Пятёрочка' : 'Перекрёсток'}, ${pt.a}` : ''
     if (where.length < 5) return setErr(manual ? 'Укажите адрес пункта выдачи' : 'Выберите пункт на карте или в списке')
-    setErr(''); setPay({ where })
+    setErr(''); setPay({ where, n: String(Date.now()).slice(-6) })
   }
   // ТЕСТОВАЯ ОПЛАТА: настоящих списаний нет, после «Оплатить» заказ уходит как оплаченный
   const payNow = () => {
@@ -1404,13 +1404,13 @@ function Checkout() {
     sending.current = true
     setBusy(true)
     setTimeout(() => {
-      const o = st.placeOrder({ name: fullName, phone: st.user.phone, delivery: `5Post: ${pay.where}` }, { paid: true })
+      const o = st.placeOrder({ name: fullName, phone: st.user.phone, delivery: `5Post: ${pay.where}` }, { paid: true, n: pay.n })
       try { sessionStorage.setItem(THANKS_KEY, JSON.stringify({ type: 'order', n: o.n, name: st.user?.name || '' })) } catch {}
       setBusy(false); sending.current = false
       track('order_done', { n: o.n })
       st.setCheckout(false)
       navigate(THANKS_PATH)
-    }, 1500)
+    }, 300)
   }
   const box = (wide, kids) => <DialogContent className={cn('max-h-[94dvh] overflow-y-auto rounded-lg bg-gray-1', wide ? 'max-w-[960px] p-5 sm:max-w-[960px] sm:p-7' : 'max-w-[520px] p-7')}>{kids}</DialogContent>
   const sum = st.discount ? `${rub(st.totalWithDiscount)} (со скидкой ${rub(st.discount)})` : rub(st.total)
@@ -1440,7 +1440,7 @@ function Checkout() {
       <>
         <DialogTitle className="text-2xl font-extrabold">Оплата заказа</DialogTitle>
         <DialogDescription className="text-[15px] text-txt-2">К оплате {rub(st.totalWithDiscount)}. Пункт выдачи: {pay.where}</DialogDescription>
-        <PayWidget amount={st.totalWithDiscount} busy={busy} onPay={payNow} onBack={() => setPay(null)} />
+        <PayWidget amount={st.totalWithDiscount} orderId={pay.n} busy={busy} onPay={payNow} onBack={() => setPay(null)} />
       </>
     )
   return box(!!st.items.length,
@@ -1481,37 +1481,49 @@ function Checkout() {
   )
 }
 
-// Платёжный виджет — пока тестовый: карту не проверяем и деньги не списываем
-function PayWidget({ amount, busy, onPay, onBack }) {
-  const [card, setCard] = useState({ n: '', exp: '', cvc: '' })
+// Платёжный виджет (pay-widget от Fable): СБП + карта, сервер оплаты на VPS. Пока тестовый режим — деньги не списываются.
+const PAY_API = import.meta.env.VITE_PAY_API || 'https://136.234.25.25/pay'
+let payScript
+const loadPay = () => payScript || (payScript = new Promise((ok, fail) => {
+  if (window.PayWidget) return ok(window.PayWidget)
+  const el = document.createElement('script')
+  el.src = `${BASE}pay-widget.js`
+  el.onload = () => ok(window.PayWidget)
+  el.onerror = () => { payScript = null; fail(new Error('pay-widget')) }
+  document.head.appendChild(el)
+}))
+const payCustomer = () => {
+  try {
+    let id = localStorage.getItem('wf-pay-cid')
+    if (!id) { id = 'c' + crypto.getRandomValues(new Uint32Array(4)).join(''); localStorage.setItem('wf-pay-cid', id) }
+    return id
+  } catch { return undefined }
+}
+function PayWidget({ amount, orderId, onPay, onBack, busy }) {
+  const ref = useRef(null)
   const [err, setErr] = useState('')
-  const digits = (v, max) => v.replace(/\D/g, '').slice(0, max)
-  const go = (e) => {
-    e.preventDefault()
-    if (digits(card.n, 19).length < 16) return setErr('Введите номер карты полностью')
-    if (!/^\d{2}\/\d{2}$/.test(card.exp)) return setErr('Укажите срок действия, например 12/28')
-    if (card.cvc.length < 3) return setErr('Введите три цифры с обратной стороны карты')
-    setErr(''); onPay()
-  }
-  const inp = 'h-12 rounded-lg bg-white text-[16px] tabular-nums'
+  const cb = useRef(onPay); cb.current = onPay
+  useEffect(() => {
+    let inst, dead = false
+    loadPay().then((PW) => {
+      if (dead || !ref.current) return
+      inst = PW.mount(ref.current, {
+        orderId, amount, currency: 'RUB', description: `Заказ №${orderId} в магазине Wonderfur`,
+        customerId: payCustomer(), backendUrl: PAY_API,
+        theme: { primary: '#2b2b30', radius: '8px' },
+        onSuccess: () => cb.current(),
+        onFail: () => {},
+      })
+    }).catch(() => setErr('Не загрузилась форма оплаты. Проверьте интернет и попробуйте ещё раз'))
+    return () => { dead = true; inst?.unmount?.() }
+  }, [orderId, amount])
   return (
-    <form onSubmit={go} noValidate className="space-y-3">
-      <div className="space-y-3 rounded-lg border border-ink bg-white p-4">
-        <div className="flex flex-wrap items-center justify-between gap-1 text-sm font-semibold"><span>Банковская карта</span><span className="text-xs font-normal text-txt-2">МИР · Visa · Mastercard</span></div>
-        <label className="block"><span className="sr-only">Номер карты</span>
-          <Input inputMode="numeric" autoComplete="cc-number" placeholder="Номер карты" value={card.n} onChange={(e) => { setCard({ ...card, n: digits(e.target.value, 19).replace(/(\d{4})(?=\d)/g, '$1 ') }); setErr('') }} className={inp} /></label>
-        <div className="grid grid-cols-2 gap-3">
-          <label className="block"><span className="sr-only">Срок действия</span>
-            <Input inputMode="numeric" autoComplete="cc-exp" placeholder="ММ/ГГ" value={card.exp} onChange={(e) => { const d = digits(e.target.value, 4); setCard({ ...card, exp: d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d }); setErr('') }} className={inp} /></label>
-          <label className="block"><span className="sr-only">CVC</span>
-            <Input inputMode="numeric" autoComplete="cc-csc" type="password" placeholder="CVC" value={card.cvc} onChange={(e) => { setCard({ ...card, cvc: digits(e.target.value, 3) }); setErr('') }} className={inp} /></label>
-        </div>
-      </div>
-      <p className="text-xs text-txt-2">Тестовый режим: деньги не списываются, подойдут любые цифры.</p>
+    <div className="space-y-3">
+      {busy ? <div className="flex h-[200px] items-center justify-center gap-2 text-txt-2"><Loader2 className="size-5 animate-spin" />Оформляем заказ…</div> : <div ref={ref} className="min-h-[200px]" />}
       {err && <p role="alert" className="text-sm text-destructive">{err}</p>}
-      <Button type="submit" disabled={busy} className={cn(inkBtn, 'h-12 w-full text-base')}>{busy ? <><Loader2 className="size-5 animate-spin" />Принимаем оплату…</> : `Оплатить ${rub(amount)}`}</Button>
-      <button type="button" disabled={busy} onClick={onBack} className="text-sm text-violet-dark underline">Изменить пункт выдачи</button>
-    </form>
+      <p className="text-xs text-txt-2">Тестовый режим: деньги не списываются.</p>
+      {!busy && <button type="button" onClick={onBack} className="text-sm text-violet-dark underline">Изменить пункт выдачи</button>}
+    </div>
   )
 }
 

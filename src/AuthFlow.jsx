@@ -12,7 +12,7 @@ import { Link } from './router'
 import { pages } from './data'
 import {
   sendCode, checkCode, callStatus, lookup, loginPassword, setPassword, saveAccount, findAccount, linkEmail, phoneFor,
-  linkedChannels, channelNames, maskLogin, isEmail, authLive, authLiveNow, authConfig,
+  linkedChannels, channelNames, maskLogin, isEmail, authLive, authLiveNow, authConfig, isLinked, botLink,
 } from './auth'
 
 const inkBtn = 'h-11 rounded-full bg-ink px-5 text-sm font-medium text-white hover:bg-ink-2'
@@ -80,15 +80,16 @@ export function CallBox({ login, sent, move = false, onDone, onRetry, onChangePh
   }
   return (
     <div className="space-y-3">
-      <p className="text-[15px]">Позвоните с номера {maskLogin(login)} на номер ниже. Звонок сбросится сам, и вход продолжится автоматически.</p>
+      <p className="text-[15px]">Позвоните с номера {maskLogin(login)} на номер ниже. Разговаривать не нужно: звонок сбросится сам, и вход продолжится автоматически.</p>
       {sent.demo ? (
         <div className={cn(R, 'space-y-2 border border-dashed border-gray-3 p-3 text-xs text-txt-2')}>
           <div>Демо: звонки пока не подключены. Здесь появится номер для звонка.</div>
           <button type="button" disabled={busy || left <= 0} onClick={demoCall} className={cn(inkBtn, 'h-10 w-full')}>{busy ? <Loader2 className="mx-auto size-4 animate-spin" /> : 'Я позвонил'}</button>
         </div>
       ) : (
-        <a href={'tel:+' + String(sent.callTo).replace(/\D/g, '')} className={cn(R, 'flex h-14 items-center justify-center gap-2 border border-ink bg-white text-xl font-extrabold tracking-wide text-ink')}>
-          <Phone className="size-5" />{fmtCall(sent.callTo)}
+        <a href={'tel:+' + String(sent.callTo).replace(/\D/g, '')} className={cn(R, 'flex flex-col items-center justify-center gap-0.5 bg-ink px-4 py-3 text-white hover:bg-ink-2')}>
+          <span className="flex items-center gap-2 text-xl font-extrabold tracking-wide"><Phone className="size-5" />{fmtCall(sent.callTo)}</span>
+          <span className="text-xs font-medium text-white/80"><span className="[@media(pointer:fine)]:hidden">Нажмите, чтобы позвонить</span><span className="hidden [@media(pointer:fine)]:inline">Позвоните на этот номер с телефона</span></span>
         </a>
       )}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
@@ -99,6 +100,77 @@ export function CallBox({ login, sent, move = false, onDone, onRetry, onChangePh
       </div>
       {consent}
       {err && <p role="alert" className="text-sm text-destructive">{err}</p>}
+    </div>
+  )
+}
+
+function TgIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <rect width="24" height="24" rx="7" fill="#27a6e5" />
+      <path d="M5.4 11.7l11.1-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2 0-.3-.3-.1L8.3 13.6l-2.8-.9c-.6-.2-.6-.6.1-.9z" fill="#fff" />
+    </svg>
+  )
+}
+function MaxIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <rect width="24" height="24" rx="7" fill="#6a5cf6" />
+      <path d="M12 5.5a6.5 6.5 0 0 0-5.6 9.8L5.6 18.4l3.2-.8A6.5 6.5 0 1 0 12 5.5z" fill="#fff" />
+    </svg>
+  )
+}
+
+// Номер ещё не подтверждён в нашем боте: главный способ — бот (Telegram/Max), запасной — звонок.
+// Пока покупатель в боте, раз в 3 секунды спрашиваем CRM; номер подтвердился — код сразу уходит в бот.
+function ChooseWay({ login, bots, busy, what, onLinked, onCall, onChangePhone }) {
+  const [opened, setOpened] = useState(false)
+  const cb = useRef(onLinked); cb.current = onLinked
+  useEffect(() => {
+    if (!opened) return
+    let stop = false, timer
+    const tick = async () => {
+      if (stop) return
+      if (await isLinked(login)) { if (!stop) cb.current(); return }
+      timer = setTimeout(tick, 3000)
+    }
+    timer = setTimeout(tick, 3000)
+    const back = () => document.visibilityState === 'visible' && (clearTimeout(timer), tick())
+    document.addEventListener('visibilitychange', back)
+    return () => { stop = true; clearTimeout(timer); document.removeEventListener('visibilitychange', back) }
+  }, [opened, login])
+  const names = { telegram: ['Telegram', TgIcon], max: ['Max', MaxIcon] }
+  return (
+    <div className="space-y-3">
+      <p className="text-[15px]">Подтвердите номер {maskLogin(login)} — выберите, как удобнее.</p>
+      {bots.length > 0 && (
+        <div className={cn(R, 'space-y-3 border border-ink bg-white p-4')}>
+          <div className="text-sm font-bold">Через наш бот — быстрее всего</div>
+          <div className="grid gap-2">
+            {bots.map((b) => {
+              const [n, I] = names[b.type] || [b.type, TgIcon]
+              return (
+                <a key={b.type} href={botLink(b) + (b.type === 'telegram' ? '?start=auth' : '')} target="_blank" rel="noreferrer" onClick={() => setOpened(true)}
+                  className={cn(R, 'flex h-12 items-center justify-center gap-2 bg-ink px-4 text-base font-semibold text-white hover:bg-ink-2')}>
+                  <I className="size-6" />Открыть бота в {n}
+                </a>
+              )
+            })}
+          </div>
+          <ol className="list-decimal space-y-1 pl-5 text-sm text-txt-2">
+            <li>В боте нажмите «Старт»</li>
+            <li>Затем нажмите кнопку <b className="text-ink">«📱 Авторизоваться»</b> внизу экрана и подтвердите, что делитесь номером</li>
+            <li>Вернитесь сюда — {what} придёт в бот, а этот шаг продолжится сам</li>
+          </ol>
+          {opened && <p className="flex items-center gap-2 text-sm text-txt-2"><Loader2 className="size-4 animate-spin" />Ждём подтверждения в боте…</p>}
+        </div>
+      )}
+      <button type="button" disabled={busy} onClick={onCall}
+        className={cn(R, 'flex w-full items-center justify-center gap-2 border border-ink bg-white px-4 py-3 text-base font-semibold text-ink hover:bg-gray-2 disabled:opacity-60')}>
+        {busy ? <Loader2 className="size-5 animate-spin" /> : <Phone className="size-5" />}Подтвердить звонком
+      </button>
+      <p className="-mt-1 text-center text-xs text-txt-2">Покажем номер — позвоните на него, звонок сбросится сам</p>
+      <button type="button" onClick={onChangePhone} className={cn(linkCls, 'text-sm')}>Изменить номер</button>
     </div>
   )
 }
@@ -130,6 +202,8 @@ export default function AuthFlow({ note }) {
 
   // kind: 'code' — код для регистрации, 'reset' — новый пароль; via: 'call' — попросили звонок вместо мессенджера
   const request = async (kind, via = '', extra = {}) => {
+    // сначала — бот: если номер в нём ещё не подтверждён, CRM ничего не шлёт и не звонит, а покупатель выбирает способ сам
+    if (via === '' && live && mode === 'phone') via = 'bot'
     setBusy(true)
     const res = await sendCode(login, { trap: f.trap, startedAt: started.current, via, kind, demoLinked: live ? null : [...new Set([...demo, ...linkedChannels(f.phone)])] })
     setBusy(false)
@@ -226,6 +300,11 @@ export default function AuthFlow({ note }) {
   const what = kind === 'reset' ? 'пароль' : 'код'
   const where = !sent ? '' : sent.channel === 'email' ? `на почту ${maskLogin(login)}` : `в ${channelNames[sent.channel]} — на аккаунт с номером ${maskLogin(login)}`
   const byCall = sent?.channel === 'call' && (step === 'register' || step === 'reset')
+  const choose = !!sent?.needBot && (step === 'register' || step === 'reset')
+  const chooser = choose && (
+    <ChooseWay login={login} bots={sent.bots || []} busy={busy} what={what}
+      onLinked={() => request(kind, 'linked')} onCall={() => request(kind, 'call')} onChangePhone={() => go('start')} />
+  )
   const callBox = (consent) => <CallBox login={login} sent={sent} onDone={called} onRetry={() => request(kind, 'call')} onChangePhone={() => go('start')} consent={consent} />
   const sentCopy = (
     <>
@@ -302,6 +381,7 @@ export default function AuthFlow({ note }) {
         </>
       )}
 
+      {chooser}
       {step === 'register' && byCall && callBox(
         <p className="text-xs text-txt-2">
           Позвонив, вы даёте <Link to={pages.consent.path} className="underline hover:text-ink">согласие на обработку персональных данных</Link> и принимаете{' '}
@@ -309,7 +389,7 @@ export default function AuthFlow({ note }) {
         </p>,
       )}
 
-      {step === 'register' && !byCall && (
+      {step === 'register' && !byCall && !choose && (
         <>
           <p className="text-[15px]">Мы отправили код {where}</p>
           <Input aria-label="Код из сообщения" autoFocus placeholder="Код" inputMode="numeric" autoComplete="one-time-code" maxLength={4} value={f.code} onChange={(e) => set('code')(e.target.value.replace(/\D/g, ''))} className={cn(inp, 'text-center text-xl tracking-[.5em]')} />
@@ -321,7 +401,7 @@ export default function AuthFlow({ note }) {
         </>
       )}
 
-      {step === 'reset' && byCall && (
+      {step === 'reset' && byCall && !choose && (
         <>
           <p className="text-[15px] font-semibold">{sent?.firstPass ? 'Пароль для входа ещё не задан. Подтвердите номер звонком и придумайте пароль.' : 'Подтвердите номер звонком и придумайте новый пароль.'}</p>
           {callBox(null)}
@@ -339,7 +419,7 @@ export default function AuthFlow({ note }) {
         </>
       )}
 
-      {step === 'reset' && !byCall && (
+      {step === 'reset' && !byCall && !choose && (
         <>
           <p className="text-[15px]">{sent?.firstPass ? 'Пароль для входа ещё не задан — мы отправили его' : 'Мы отправили новый пароль'} {where}</p>
           <input type="text" readOnly hidden autoComplete="username" value={login} />
@@ -372,7 +452,7 @@ export default function AuthFlow({ note }) {
       )}
 
       {err && <p role="alert" className="text-sm text-destructive">{err}</p>}
-      {!byCall && (
+      {!byCall && !choose && (
         <Button type="submit" disabled={busy} className={cn(inkBtn, 'h-12 w-full gap-2 text-base')}>
           {busy ? <Loader2 className="size-5 animate-spin" /> : <>{buttons[step]}<ArrowRight className="size-5" /></>}
         </Button>
