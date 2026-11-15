@@ -311,6 +311,13 @@ export async function messengerInfo() {
   const r = await post('me', { token: s.token }).catch(() => null)
   return r?.ok ? { linked: r.body.linked || [], bots: r.body.bots || [], email: r.body.account?.email || '' } : null
 }
+// Заказы покупателя из CRM (null — CRM недоступна или не вошли через неё)
+export async function myOrders() {
+  const s = getSession()
+  if (!(await authLive()) || !s?.token) return null
+  const r = await post('orders', { token: s.token }).catch(() => null)
+  return r?.ok && Array.isArray(r.body) ? r.body : null
+}
 // Подтвердил ли покупатель этот номер в нашем боте (сайт спрашивает, пока человек в Telegram/Max)
 export async function isLinked(login) {
   if (!(await authLive())) return false

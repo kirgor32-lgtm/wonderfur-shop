@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { cn } from '@/lib/utils'
 import { StoreProvider, useStore, rub, fmtPhone } from './store'
 import { RouterProvider, useRoute, Link } from './router'
-import { sendCode, checkCode, linkedChannels, setLinked, channelNames, findAccount, saveAccount, authLiveNow, messengerInfo, botLink, setPassword, movePassword, linkEmail, emailOf, isEmail, phoneFor, authConfig } from './auth'
+import { myOrders, sendCode, checkCode, linkedChannels, setLinked, channelNames, findAccount, saveAccount, authLiveNow, messengerInfo, botLink, setPassword, movePassword, linkEmail, emailOf, isEmail, phoneFor, authConfig } from './auth'
 import AuthFlow, { PassInput, CallBox } from './AuthFlow'
 import { track, sendLead, crmEnabled, fetchOrderStatus } from './crm'
 import {
@@ -1696,6 +1696,20 @@ function Profile({ nav }) {
     })
     return () => { cancelled = true }
   }, [st.orders.length, st.user.phone])
+  // заказы из CRM: история не теряется при очистке браузера и видна на любом устройстве
+  useEffect(() => {
+    let off = false
+    myOrders().then((list) => {
+      if (off || !list) return
+      st.setOrders((cur) => {
+        const known = new Map(list.map((o) => [String(o.n), o]))
+        const localOnly = cur.filter((o) => !known.has(String(o.n)))
+        // только что оформленные (ещё не дошли до CRM) — сверху, дальше история из CRM, новые первыми
+        return [...localOnly, ...list.map((o) => ({ ...(cur.find((c) => String(c.n) === String(o.n)) || {}), ...o }))]
+      })
+    })
+    return () => { off = true }
+  }, [st.user.phone])
   // почта из CRM (могли добавить на другом устройстве или при регистрации по почте)
   useEffect(() => { messengerInfo().then((r) => { if (r && (r.email || '') !== (st.user.email || '')) st.setUser({ ...st.user, email: r.email || '' }) }) }, [st.user.phone])
   return (

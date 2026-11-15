@@ -84,7 +84,7 @@ export function StoreProvider({ children }) {
       setPromo(null)
       return o
     }
-    return { items, add, setQty, qtyOf, count, total, fav, favCount: fav.length, toggleFav, compare, toggleCompare, clearCompare: () => setCompare([]), user, setUser, orders, placeOrder, panel, setPanel, checkout, setCheckout, promo, applyPromo, clearPromo, discount, totalWithDiscount, firstOrderEligible }
+    return { items, add, setQty, qtyOf, count, total, fav, favCount: fav.length, toggleFav, compare, toggleCompare, clearCompare: () => setCompare([]), user, setUser, orders, setOrders, placeOrder, panel, setPanel, checkout, setCheckout, promo, applyPromo, clearPromo, discount, totalWithDiscount, firstOrderEligible }
   }, [items, fav, compare, user, orders, panel, checkout, promo, promoRedeemed])
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>
