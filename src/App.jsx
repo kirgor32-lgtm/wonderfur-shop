@@ -1651,7 +1651,7 @@ function EditProfile({ onClose }) {
           <label className="block"><span className="mb-1 block text-xs text-txt-2">Фамилия (необязательно)</span><Input autoComplete="family-name" maxLength={60} value={f.surname} onChange={(e) => setF({ ...f, surname: e.target.value })} className={inp} /></label>
           <label className="block"><span className="mb-1 block text-xs text-txt-2">Дата рождения</span><Input type="date" autoComplete="bday" min="1900-01-01" max={today} value={f.birth} onChange={(e) => setF({ ...f, birth: e.target.value })} className={inp} /></label>
           <label className="block"><span className="mb-1 block text-xs text-txt-2">Телефон — для входа и смс о заказах</span><Input type="tel" autoComplete="tel" inputMode="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: fmtPhone(e.target.value) })} className={inp} /></label>
-          {!authLiveNow() && <label className="block"><span className="mb-1 block text-xs text-txt-2">Почта — можно входить по ней (необязательно)</span><Input type="email" autoComplete="email" inputMode="email" maxLength={120} value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} className={inp} /></label>}
+          <label className="block"><span className="mb-1 block text-xs text-txt-2">Электронная почта — необязательно. По ней можно входить и получать письма о заказах</span><Input type="email" autoComplete="email" inputMode="email" placeholder="name@mail.ru" maxLength={120} value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} className={inp} /></label>
           <label className="block"><span className="mb-1 block text-xs text-txt-2">Новый пароль — если хотите сменить</span><PassInput value={f.newPass} onChange={(v) => setF({ ...f, newPass: v })} placeholder="Новый пароль" autoComplete="new-password" /></label>
           {!same && <p className="text-xs text-txt-2">Новый номер подтвердим кодом в Telegram или Max, а если их нет — звонком.</p>}
         </>
@@ -1696,13 +1696,15 @@ function Profile({ nav }) {
     })
     return () => { cancelled = true }
   }, [st.orders.length, st.user.phone])
+  // почта из CRM (могли добавить на другом устройстве или при регистрации по почте)
+  useEffect(() => { messengerInfo().then((r) => { if (r && (r.email || '') !== (st.user.email || '')) st.setUser({ ...st.user, email: r.email || '' }) }) }, [st.user.phone])
   return (
     <div className="space-y-5">
       {edit ? <EditProfile onClose={(ok) => { setEdit(false); setSaved(ok === true) }} /> : (
         <div className="rounded-lg bg-gray-1 p-4">
           <div className="flex items-center gap-3">
             <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-violet-dark text-lg font-bold text-white">{st.user.name[0]?.toUpperCase()}</span>
-            <div className="min-w-0 flex-1"><div className="font-bold">{[st.user.name, st.user.surname].filter(Boolean).join(' ')}</div><div className="whitespace-nowrap text-sm text-txt-2">{st.user.phone}</div>{bday && <div className="text-sm text-txt-2">{bday}</div>}</div>
+            <div className="min-w-0 flex-1"><div className="font-bold">{[st.user.name, st.user.surname].filter(Boolean).join(' ')}</div><div className="whitespace-nowrap text-sm text-txt-2">{st.user.phone}</div>{st.user.email ? <div className="truncate text-sm text-txt-2">{st.user.email}</div> : <button type="button" onClick={() => { setEdit(true); setSaved(false) }} className="text-sm font-semibold text-violet-dark hover:underline">+ Добавить почту</button>}{bday && <div className="text-sm text-txt-2">{bday}</div>}</div>
             <button onClick={() => st.setUser(null)} className="flex items-center gap-1 self-start text-sm text-txt-2 hover:text-ink"><LogOut className="size-4" />Выйти</button>
           </div>
           <button onClick={() => { setEdit(true); setSaved(false) }} className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-violet-dark hover:underline"><Pencil className="size-3.5" />Изменить личные данные</button>

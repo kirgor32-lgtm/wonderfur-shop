@@ -309,7 +309,7 @@ export async function messengerInfo() {
   const s = getSession()
   if (!(await authLive()) || !s) return null
   const r = await post('me', { token: s.token }).catch(() => null)
-  return r?.ok ? { linked: r.body.linked || [], bots: r.body.bots || [] } : null
+  return r?.ok ? { linked: r.body.linked || [], bots: r.body.bots || [], email: r.body.account?.email || '' } : null
 }
 // Подтвердил ли покупатель этот номер в нашем боте (сайт спрашивает, пока человек в Telegram/Max)
 export async function isLinked(login) {
