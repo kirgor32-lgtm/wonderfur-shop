@@ -12,10 +12,10 @@ import generatedPrices from './prices.generated.json'
 
 // ⚠️ ЗАГЛУШКИ — заменить перед запуском (поиск: «ЗАГЛУШКА»)
 export const contacts = {
-  phone: '+7 (812) 000-00-00', // ЗАГЛУШКА: городской номер СПб
-  phoneHref: 'tel:+78120000000',
+  phone: '+7 (950) 026-78-38',
+  phoneHref: 'tel:+79500267838',
   email: 'hello@example.ru', // ЗАГЛУШКА
-  telegram: 'https://t.me/', // ЗАГЛУШКА: свой канал/бот магазина
+  telegram: 'https://t.me/Wonderfurshop_bot', // бот магазина, подключён к CRM
   max: 'https://max.ru/', // ЗАГЛУШКА
   dzen: '',
   hours: 'ежедневно 9:00–21:00',

@@ -74,8 +74,8 @@ export function StoreProvider({ children }) {
     const promoOk = promo && (!promo.firstOrder || firstOrderEligible || crmEnabled)
     const discount = !promoOk ? 0 : promo.kind === 'fixed' ? Math.min(total, promo.value) : Math.round(total * promo.value / 100)
     const totalWithDiscount = total - discount
-    const placeOrder = (contact) => {
-      const o = { n: String(Date.now()).slice(-6), date: new Date().toLocaleDateString('ru-RU'), items, total: totalWithDiscount, promo: discount ? promo.code : null, contact }
+    const placeOrder = (contact, extra = {}) => {
+      const o = { n: String(Date.now()).slice(-6), date: new Date().toLocaleDateString('ru-RU'), items, total: totalWithDiscount, promo: discount ? promo.code : null, contact, ...extra }
       setOrders((s) => [o, ...s])
       sendOrder({ ...o, discount }) // в CRM (если подключена)
       if (!user) setUser({ name: contact.name, phone: contact.phone })

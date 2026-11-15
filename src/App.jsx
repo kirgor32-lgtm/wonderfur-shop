@@ -1358,23 +1358,29 @@ function Checkout() {
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
   const sending = useRef(false) // защита от двойного нажатия
-  const step = done ? 'done' : !st.user ? 'auth' : 'point'
+  const [pay, setPay] = useState(null) // адрес выбран → шаг оплаты
+  const step = done ? 'done' : !st.user ? 'auth' : pay ? 'pay' : 'point'
   const fullName = st.user ? [st.user.name, st.user.surname].filter(Boolean).join(' ') : ''
   const submit = (e) => {
     e.preventDefault()
     if (sending.current) return
     const where = manual ? point.trim() : pt ? `${pt.b === 'p' ? 'Пятёрочка' : 'Перекрёсток'}, ${pt.a}` : ''
     if (where.length < 5) return setErr(manual ? 'Укажите адрес пункта выдачи' : 'Выберите пункт на карте или в списке')
+    setErr(''); setPay({ where })
+  }
+  // ТЕСТОВАЯ ОПЛАТА: настоящих списаний нет, после «Оплатить» заказ уходит как оплаченный
+  const payNow = () => {
+    if (sending.current) return
     sending.current = true
     setBusy(true)
     setTimeout(() => {
-      const o = st.placeOrder({ name: fullName, phone: st.user.phone, delivery: `5Post: ${where}` })
+      const o = st.placeOrder({ name: fullName, phone: st.user.phone, delivery: `5Post: ${pay.where}` }, { paid: true })
       try { sessionStorage.setItem(THANKS_KEY, JSON.stringify({ type: 'order', n: o.n, name: st.user?.name || '' })) } catch {}
       setBusy(false); sending.current = false
       track('order_done', { n: o.n })
       st.setCheckout(false)
       navigate(THANKS_PATH)
-    }, 500)
+    }, 1500)
   }
   const box = (wide, kids) => <DialogContent className={cn('max-h-[94dvh] overflow-y-auto rounded-lg bg-gray-1', wide ? 'max-w-[960px] p-5 sm:max-w-[960px] sm:p-7' : 'max-w-[520px] p-7')}>{kids}</DialogContent>
   const sum = st.discount ? `${rub(st.totalWithDiscount)} (со скидкой ${rub(st.discount)})` : rub(st.total)
@@ -1397,6 +1403,14 @@ function Checkout() {
         <DialogTitle className="sr-only">Вход или регистрация</DialogTitle>
         <DialogDescription className="sr-only">Сумма заказа {sum}</DialogDescription>
         <AuthFlow note={`Сумма заказа ${sum}. Войдите или зарегистрируйтесь, чтобы оформить заказ.`} />
+      </>
+    )
+  if (step === 'pay')
+    return box(false,
+      <>
+        <DialogTitle className="text-2xl font-extrabold">Оплата заказа</DialogTitle>
+        <DialogDescription className="text-[15px] text-txt-2">К оплате {rub(st.totalWithDiscount)}. Пункт выдачи: {pay.where}</DialogDescription>
+        <PayWidget amount={st.totalWithDiscount} busy={busy} onPay={payNow} onBack={() => setPay(null)} />
       </>
     )
   return box(!!st.items.length,
@@ -1428,12 +1442,46 @@ function Checkout() {
               {!manual && (pt ? <div className="font-semibold">{pt.b === 'p' ? 'Пятёрочка' : 'Перекрёсток'}, {pt.a}</div> : <div className="text-txt-2">Пункт не выбран</div>)}
               <div className="text-txt-2"><span className="text-ink">{fullName}</span> · <span className="whitespace-nowrap">{st.user.phone}</span> · <button type="button" onClick={() => st.setUser(null)} className="underline hover:text-ink">Не вы?</button></div>
             </div>
-            <Button type="submit" disabled={busy} className={cn(inkBtn, 'h-12 shrink-0 px-8 text-base')}>{busy ? <Loader2 className="size-5 animate-spin" /> : 'Подтвердить заказ'}</Button>
+            <Button type="submit" disabled={busy} className={cn(inkBtn, 'h-12 shrink-0 px-8 text-base')}>Перейти к оплате</Button>
           </div>
           {err && <p role="alert" className="text-sm text-destructive">{err}</p>}
         </form>
       )}
     </>
+  )
+}
+
+// Платёжный виджет — пока тестовый: карту не проверяем и деньги не списываем
+function PayWidget({ amount, busy, onPay, onBack }) {
+  const [card, setCard] = useState({ n: '', exp: '', cvc: '' })
+  const [err, setErr] = useState('')
+  const digits = (v, max) => v.replace(/\D/g, '').slice(0, max)
+  const go = (e) => {
+    e.preventDefault()
+    if (digits(card.n, 19).length < 16) return setErr('Введите номер карты полностью')
+    if (!/^\d{2}\/\d{2}$/.test(card.exp)) return setErr('Укажите срок действия, например 12/28')
+    if (card.cvc.length < 3) return setErr('Введите три цифры с обратной стороны карты')
+    setErr(''); onPay()
+  }
+  const inp = 'h-12 rounded-lg bg-white text-[16px] tabular-nums'
+  return (
+    <form onSubmit={go} noValidate className="space-y-3">
+      <div className="space-y-3 rounded-lg border border-ink bg-white p-4">
+        <div className="flex flex-wrap items-center justify-between gap-1 text-sm font-semibold"><span>Банковская карта</span><span className="text-xs font-normal text-txt-2">МИР · Visa · Mastercard</span></div>
+        <label className="block"><span className="sr-only">Номер карты</span>
+          <Input inputMode="numeric" autoComplete="cc-number" placeholder="Номер карты" value={card.n} onChange={(e) => { setCard({ ...card, n: digits(e.target.value, 19).replace(/(\d{4})(?=\d)/g, '$1 ') }); setErr('') }} className={inp} /></label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block"><span className="sr-only">Срок действия</span>
+            <Input inputMode="numeric" autoComplete="cc-exp" placeholder="ММ/ГГ" value={card.exp} onChange={(e) => { const d = digits(e.target.value, 4); setCard({ ...card, exp: d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d }); setErr('') }} className={inp} /></label>
+          <label className="block"><span className="sr-only">CVC</span>
+            <Input inputMode="numeric" autoComplete="cc-csc" type="password" placeholder="CVC" value={card.cvc} onChange={(e) => { setCard({ ...card, cvc: digits(e.target.value, 3) }); setErr('') }} className={inp} /></label>
+        </div>
+      </div>
+      <p className="text-xs text-txt-2">Тестовый режим: деньги не списываются, подойдут любые цифры.</p>
+      {err && <p role="alert" className="text-sm text-destructive">{err}</p>}
+      <Button type="submit" disabled={busy} className={cn(inkBtn, 'h-12 w-full text-base')}>{busy ? <><Loader2 className="size-5 animate-spin" />Принимаем оплату…</> : `Оплатить ${rub(amount)}`}</Button>
+      <button type="button" disabled={busy} onClick={onBack} className="text-sm text-violet-dark underline">Изменить пункт выдачи</button>
+    </form>
   )
 }
 
