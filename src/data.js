@@ -14,7 +14,7 @@ import generatedPrices from './prices.generated.json'
 export const contacts = {
   phone: '+7 (950) 026-78-38',
   phoneHref: 'tel:+79500267838',
-  email: 'hello@example.ru', // ЗАГЛУШКА
+  email: 'wonderfurshop@mail.ru',
   telegram: 'https://t.me/Wonderfurshop_bot', // бот магазина, подключён к CRM
   max: 'https://max.ru/', // ЗАГЛУШКА
   dzen: '',

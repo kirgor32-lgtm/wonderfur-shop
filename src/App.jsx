@@ -1591,7 +1591,7 @@ function LinkedMessengers() {
 function EditProfile({ onClose }) {
   const st = useStore()
   const u = st.user
-  const [f, setF] = useState({ name: u.name || '', surname: u.surname || '', birth: u.birth || '', phone: u.phone, code: '', email: emailOf(u.phone), newPass: '' })
+  const [f, setF] = useState({ name: u.name || '', surname: u.surname || '', birth: u.birth || '', phone: u.phone, code: '', email: u.email || emailOf(u.phone), newPass: '' })
   const [step, setStep] = useState('form') // form | code
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
@@ -1602,7 +1602,10 @@ function EditProfile({ onClose }) {
   const same = f.phone.replace(/\D/g, '') === u.phone.replace(/\D/g, '')
   const finish = async (phone) => {
     const acc = { name: f.name.trim(), surname: f.surname.trim(), birth: f.birth }
-    await saveAccount(phone, acc)
+    const live = authLiveNow()
+    const sv = await saveAccount(phone, live ? { ...acc, email: f.email.trim().toLowerCase() } : acc)
+    if (sv?.error) { setErr(sv.error); return false }
+    acc.email = f.email.trim().toLowerCase()
     if (phone !== u.phone) { movePassword(u.phone, phone); await saveAccount(u.phone, null) } // старый номер больше не ведёт в этот аккаунт
     if (f.newPass) await setPassword(phone, f.newPass)
     if (!authLiveNow()) linkEmail(f.email.trim(), phone)

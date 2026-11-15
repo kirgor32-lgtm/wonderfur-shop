@@ -263,6 +263,7 @@ export default function AuthFlow({ note }) {
       const acc = mode === 'phone' && (await findAccount(f.phone)) // зарегистрировался с другого устройства, пока вводил код
       setBusy(false)
       if (acc) return enter(f.phone, acc)
+      if (mode === 'email' && r.phone && r.account) return enter(r.phone, r.account) // почта уже привязана к аккаунту — просто входим
       return go('profile')
     }
     if (step === 'reset') {
@@ -288,7 +289,9 @@ export default function AuthFlow({ note }) {
       if (r.exists) { setBusy(false); return setErr('Этот номер уже зарегистрирован — войдите по номеру телефона') }
     }
     const acc = { name: f.name.trim(), surname: f.surname.trim(), birth: f.birth }
-    await saveAccount(phone, acc)
+    const sv = await saveAccount(phone, acc)
+    if (sv?.error) { setBusy(false); return setErr(sv.error) }
+    if (mode === 'email') acc.email = f.email.trim().toLowerCase()
     const p = await setPassword(phone, f.newPass)
     if (p.error) { setBusy(false); return setErr(p.error) }
     if (mode === 'email') linkEmail(f.email, phone)
