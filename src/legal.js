@@ -1,7 +1,7 @@
 // Сгенерировано из docs/legal/*.md (черновики, нужны реквизиты и проверка юристом)
 import { seller, SITE } from './data.js'
 const OP = () => `${seller.name}, ОГРН ${seller.ogrn}, ИНН ${seller.inn}, адрес: ${seller.address}`
-const fill = (t) => t.replaceAll('@@OP@@', OP()).replaceAll('@@SITE@@', SITE.replace('https://', ''))
+const fill = (t) => t.replaceAll('@@OP@@', OP()).replaceAll('@@SITE@@', '136.234.25.25/wonderfur-shop') // боевой сайт на сервере, не песочница
 const raw = {
  "privacy": [
   [
