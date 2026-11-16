@@ -95,7 +95,7 @@ export function routes() {
     ...products.map((p) => ({ path: productPath(p), type: 'product', id: p.id })),
     { path: pages.blog.path, type: 'blog' },
     ...posts.map((p) => ({ path: `blog/${p.slug}/`, type: 'post', slug: p.slug })),
-    ...['delivery', 'returns', 'about', 'contacts', 'faq', 'privacy', 'consent'].map((k) => ({ path: pages[k].path, type: 'page', page: k })),
+    ...['delivery', 'returns', 'about', 'contacts', 'faq', 'privacy', 'consent', 'terms'].map((k) => ({ path: pages[k].path, type: 'page', page: k })),
     { path: 'spasibo/', type: 'thanks' },
   ]
   return r
@@ -166,7 +166,7 @@ export function head(route) {
       ld = [crumbs([['Главная', ''], [pg.title, pg.path]])]
       if (route.page === 'faq') ld.push({ '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) })
       if (route.page === 'contacts' || route.page === 'about') ld.push(org)
-      if (route.page === 'privacy' || route.page === 'consent') robots = 'noindex, follow'
+      if (['privacy', 'consent', 'terms'].includes(route.page)) robots = 'noindex, follow'
       break
     }
     case 'thanks':

@@ -16,6 +16,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
+import { legal } from './legal.js'
 import { StoreProvider, useStore, rub, fmtPhone } from './store'
 import { RouterProvider, useRoute, Link } from './router'
 import { myOrders, sendCode, checkCode, linkedChannels, setLinked, channelNames, findAccount, saveAccount, authLiveNow, messengerInfo, botLink, setPassword, movePassword, linkEmail, emailOf, isEmail, phoneFor, authConfig } from './auth'
@@ -335,7 +336,7 @@ function Hero({ nav }) {
             <span className="flex size-[84px] items-center justify-center overflow-hidden rounded-full bg-gray-1 ring-1 ring-transparent transition group-hover:ring-ink sm:size-[104px]">
               <img src={img(im)} {...IMG} loading="lazy" alt="" className="h-[78%] w-[78%] object-contain transition group-hover:scale-105" />
             </span>
-            <span className="text-center text-[13px] leading-tight">{l}</span>
+            <span className="w-full text-center text-[13px] leading-tight [overflow-wrap:anywhere]">{l === 'стерилизованным' ? 'стерили­зованным' : l}</span>
           </Link>
         ))}
       </div>
@@ -1004,10 +1005,10 @@ function TextPage({ id, topic, setTopic }) {
       <section className="wrap max-w-[860px] pb-16 pt-4">
         <SectionTitle as="h1">{pg.h1}</SectionTitle>
         <div className="mt-8 space-y-6">
-          {pg.body.map(([h, t]) => (
+          {(legal[id] || pg.body).map(([h, t]) => (
             <div key={h}>
               <h2 className="text-xl font-bold">{h}</h2>
-              <p className="mt-2 text-[16px] leading-relaxed text-txt-2">{t}</p>
+              <p className="mt-2 whitespace-pre-line break-words text-[16px] leading-relaxed text-txt-2">{t}</p>
             </div>
           ))}
         </div>
@@ -1118,7 +1119,8 @@ function Footer({ nav }) {
         <p>
           Цены указаны в рублях с НДС. Сайт носит информационный характер и не является публичной офертой.{' '}
           <Link to={pages.privacy.path} className="underline hover:text-white">Политика конфиденциальности</Link> ·{' '}
-          <Link to={pages.consent.path} className="underline hover:text-white">Согласие на обработку данных</Link>
+          <Link to={pages.consent.path} className="underline hover:text-white">Согласие на обработку данных</Link> ·{' '}
+          <Link to={pages.terms.path} className="underline hover:text-white">Пользовательское соглашение</Link>
         </p>
         <p>© 2026 Wonderfur, Санкт-Петербург. Демонстрационный сайт.{' '}<button onClick={() => window.dispatchEvent(new Event('wf-cookies'))} className="underline hover:text-white">Настройки cookie</button></p>
       </div>
