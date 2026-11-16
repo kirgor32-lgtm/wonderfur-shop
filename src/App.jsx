@@ -141,7 +141,7 @@ function Header({ filter, nav }) {
       {/* верхняя строка, как у «Золотого Яблока»: город, доставка, телефон */}
       <div className="bg-ink text-[14px] text-white max-[359px]:text-[12px] sm:text-[13px]">
         <div className="wrap flex h-10 items-center justify-between gap-3 sm:h-9 sm:gap-4">
-          <span className="truncate"><span className="min-[400px]:hidden sm:hidden">Доставка бесплатно</span><span className="hidden min-[400px]:inline sm:hidden">Бесплатная доставка в 5Post</span><span className="hidden sm:inline">Бесплатная доставка до пунктов 5Post по Санкт-Петербургу</span></span>
+          <span className="truncate"><span className="whitespace-nowrap min-[400px]:hidden sm:hidden">Бесплатно в 5Post</span><span className="hidden min-[400px]:inline sm:hidden">Бесплатная доставка в 5Post</span><span className="hidden sm:inline">Бесплатная доставка до пунктов 5Post по Санкт-Петербургу</span></span>
           <a href={contacts.phoneHref} className="shrink-0 whitespace-nowrap text-[15px] font-bold tracking-wide max-[359px]:text-[14px] max-[359px]:tracking-normal hover:underline sm:text-[13px] sm:font-semibold sm:tracking-normal">{contacts.phone}<span className="hidden sm:inline"> · {contacts.hours}</span></a>
         </div>
       </div>
@@ -1355,7 +1355,7 @@ function Panels({ nav }) {
       <Sheet open={st.panel === 'menu'} onOpenChange={(o) => !o && close()}>
         <SheetContent side="left" className="flex w-[320px] max-w-[86vw] flex-none touch-pan-y flex-col gap-0 overflow-x-hidden p-0">
           <SheetHeader className="border-b border-gray-2 px-5 py-3"><SheetTitle asChild><div><Logo onClick={close} /></div></SheetTitle><SheetDescription className="sr-only">Меню сайта</SheetDescription></SheetHeader>
-          <nav aria-label="Меню" className="flex-1 touch-pan-y overflow-x-hidden overflow-y-auto px-5 py-3 [--mi:clamp(24px,calc((100dvh-236px)/13),44px)]">
+          <nav aria-label="Меню" className="flex-1 touch-pan-y overflow-x-hidden overflow-y-auto px-5 py-3 [--mi:clamp(24px,calc((100dvh-250px)/13),44px)]">
             <div className="mb-1 text-[13px] font-bold uppercase tracking-wide text-txt-2">Каталог</div>
             <MenuLink to={kinds.cat.path} onClick={close}>Корм для кошек</MenuLink>
             <MenuLink to={kinds.dog.path} onClick={close}>Корм для собак</MenuLink>
@@ -1371,7 +1371,7 @@ function Panels({ nav }) {
             <MenuLink to={pages.blog.path} onClick={close}>Блог</MenuLink>
             <MenuLink to={pages.faq.path} onClick={close}>Частые вопросы</MenuLink>
             <MenuLink to={pages.contacts.path} onClick={close}>Контакты</MenuLink>
-            <div className="mt-3 flex h-7 items-baseline justify-between gap-2"><a href={contacts.phoneHref} className="whitespace-nowrap text-lg font-bold">{contacts.phone}</a><span className="truncate text-xs text-txt-2">{contacts.hours.replace(/^ежедневно\s*/, '')}</span></div>
+            <div className="mt-3"><a href={contacts.phoneHref} className="block whitespace-nowrap text-lg font-bold leading-6">{contacts.phone}</a><div className="text-xs leading-4 text-txt-2">{contacts.hours}</div></div>
             <div className="mt-3 grid grid-cols-2 gap-2">
               <a href={contacts.telegram} target="_blank" rel="noopener nofollow" className="flex h-10 items-center justify-center gap-2 rounded-lg bg-gray-2 text-sm font-semibold"><TgIcon className="size-5" />Telegram</a>
               <a href={contacts.max} target="_blank" rel="noopener nofollow" className="flex h-10 items-center justify-center gap-2 rounded-lg bg-gray-2 text-sm font-semibold"><MaxIcon className="size-5" />Max</a>
