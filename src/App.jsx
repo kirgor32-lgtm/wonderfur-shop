@@ -136,8 +136,8 @@ function Header({ filter, nav }) {
       {/* верхняя строка, как у «Золотого Яблока»: город, доставка, телефон */}
       <div className="bg-ink text-[12px] text-white">
         <div className="wrap flex h-8 items-center justify-between gap-4">
-          <span className="truncate"><span className="sm:hidden">Бесплатная доставка по СПб в пункты 5Post</span><span className="hidden sm:inline">Бесплатная доставка до пунктов 5Post по Санкт-Петербургу</span></span>
-          <a href={contacts.phoneHref} className="hidden whitespace-nowrap hover:underline sm:block">{contacts.phone} · {contacts.hours}</a>
+          <span className="truncate"><span className="sm:hidden">Бесплатная доставка в 5Post</span><span className="hidden sm:inline">Бесплатная доставка до пунктов 5Post по Санкт-Петербургу</span></span>
+          <a href={contacts.phoneHref} className="shrink-0 whitespace-nowrap font-semibold hover:underline sm:font-normal">{contacts.phone}<span className="hidden sm:inline"> · {contacts.hours}</span></a>
         </div>
       </div>
       <div className="wrap flex h-[64px] items-center gap-3 lg:h-[84px] lg:gap-6">
