@@ -1246,6 +1246,8 @@ function Panels({ nav }) {
     </SheetHeader>
   )
   const favs = products.filter((p) => st.fav.includes(p.id))
+  // как на Озоне: минус на 1 и корзина не удаляют сразу — сначала спрашиваем, можно передумать
+  const [askDel, setAskDel] = useState(null)
   const toCatalog = ['В каталог', () => { close(); nav.show({}) }]
   return (
     <>
@@ -1261,17 +1263,29 @@ function Panels({ nav }) {
                   <div className="break-words text-sm leading-snug"><b>{i.line}</b> {i.name} · {i.w}</div>
                   <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-2">
                     <div className="flex shrink-0 items-center rounded-lg bg-white">
-                      <button className="flex size-8 items-center justify-center" onClick={() => st.setQty(i.key, i.qty - 1)} aria-label="Меньше"><Minus className="size-3.5" /></button>
+                      <button className="flex size-8 items-center justify-center" onClick={() => (i.qty > 1 ? st.setQty(i.key, i.qty - 1) : setAskDel(i.key))} aria-label="Меньше"><Minus className="size-3.5" /></button>
                       <span className="w-6 text-center text-sm font-semibold">{i.qty}</span>
                       <button className="flex size-8 items-center justify-center" onClick={() => st.setQty(i.key, i.qty + 1)} aria-label="Больше"><Plus className="size-3.5" /></button>
                     </div>
                     <span className="whitespace-nowrap font-bold">{rub(i.price * i.qty)}</span>
                   </div>
                 </div>
-                <button onClick={() => st.setQty(i.key, 0)} aria-label="Удалить" className="-mr-1.5 -mt-1.5 flex size-8 shrink-0 items-center justify-center self-start text-txt-2 hover:text-ink"><Trash2 className="size-4" /></button>
+                <button onClick={() => setAskDel(i.key)} aria-label="Удалить" className="-mr-1.5 -mt-1.5 flex size-8 shrink-0 items-center justify-center self-start text-txt-2 hover:text-ink"><Trash2 className="size-4" /></button>
               </div>
             ))}
           </div>
+          {askDel && st.items.some((i) => i.key === askDel) && (
+            <div className="absolute inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={() => setAskDel(null)}>
+              <div role="alertdialog" aria-label="Удалить товар?" className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+                <div className="text-lg font-bold">Удалить товар из корзины?</div>
+                <div className="mt-1 text-sm text-txt-2">Его можно будет снова добавить из каталога</div>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <Button variant="outline" onClick={() => setAskDel(null)} className="h-11 text-base">Оставить</Button>
+                  <Button onClick={() => { st.setQty(askDel, 0); setAskDel(null) }} className={cn(inkBtn, 'h-11 text-base')}>Удалить</Button>
+                </div>
+              </div>
+            </div>
+          )}
           {!!st.items.length && (
             <div className="border-t border-gray-2 p-5">
               <div className="mb-3 flex items-center gap-2 rounded-lg bg-violet-soft px-3 py-2 text-sm"><Truck className="size-4 text-violet-dark" />Бесплатная доставка до пункта 5Post</div>
