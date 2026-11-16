@@ -1746,7 +1746,7 @@ function Profile({ nav }) {
             const l = live[o.n]
             return (
             <div key={o.n} className="rounded-lg border border-gray-2 p-4">
-              <div className="flex items-center justify-between"><span className="flex items-center gap-2 font-semibold"><Package className="size-4" />Заказ №{o.n}</span><span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', ORDER_STATUS_BADGE[l?.status] || 'bg-violet-soft text-violet-dark')}>{l?.status_label || 'Принят'}</span></div>
+              <div className="flex items-center justify-between gap-2"><span className="flex min-w-0 items-center gap-2 whitespace-nowrap font-semibold"><Package className="size-4 shrink-0" />Заказ №{o.n}</span><span className={cn('shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium leading-none', ORDER_STATUS_BADGE[l?.status] || 'bg-violet-soft text-violet-dark')}>{l?.status_label || 'Принят'}</span></div>
               <div className="mt-1 text-sm text-txt-2">{o.date} · {o.items.reduce((s, i) => s + i.qty, 0)} шт. · {rub(o.total)}</div>
               <div className="mt-2 text-xs text-txt-2">{o.items.map((i) => `${i.line} ${i.w} ×${i.qty}`).join(', ')}</div>
               {o.contact?.delivery && <div className="mt-1 text-xs text-txt-2">{o.contact.delivery}</div>}
