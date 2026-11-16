@@ -93,7 +93,7 @@ export default function PickupPicker({ value, onChange }) {
 
   return (
     <div className="grid gap-3 md:h-[480px] md:grid-cols-[300px_minmax(0,1fr)]">
-      <div ref={box} className="relative z-0 order-1 h-[260px] overflow-hidden rounded-[2px] bg-gray-2 md:order-2 md:h-full">
+      <div ref={box} className="relative z-0 order-1 h-[170px] overflow-hidden rounded-[2px] bg-gray-2 md:order-2 md:h-full">
         {!points && !msg && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="size-6 animate-spin text-txt-2" /></div>}
       </div>
       <div className="order-2 flex min-h-0 flex-col md:order-1">
@@ -108,14 +108,14 @@ export default function PickupPicker({ value, onChange }) {
           </button>
         </div>
         {msg && <p className="mt-1.5 text-[13px] text-destructive">{msg}</p>}
-        <div className="mt-2 flex gap-3 text-xs text-txt-2">
+        <div className="mt-2 hidden gap-3 text-xs text-txt-2 md:flex">
           {Object.values(brands).map((b) => <span key={b.name} className="flex items-center gap-1"><span className="size-2.5 rounded-full" style={{ background: b.color }} />{b.name}</span>)}
         </div>
-        <ul className="mt-2 max-h-[240px] flex-1 space-y-1.5 overflow-y-auto pr-1 md:max-h-none">
+        <ul className="mt-2 max-h-[210px] flex-1 space-y-1.5 overflow-y-auto overscroll-contain pr-1 md:max-h-none">
           {list.map((p) => (
             <li key={p.id}>
               <button type="button" onClick={() => pick(p)}
-                className={cn('w-full rounded-[2px] border bg-white px-3 py-2 text-left text-sm transition-colors', value?.id === p.id ? 'border-ink ring-1 ring-ink' : 'border-gray-2 hover:border-ink')}>
+                className={cn('w-full rounded-[2px] border bg-white px-3 py-1.5 text-left text-sm transition-colors md:py-2', value?.id === p.id ? 'border-ink ring-1 ring-ink' : 'border-gray-2 hover:border-ink')}>
                 <span className="flex items-start justify-between gap-2">
                   <span className="flex items-start gap-1.5 font-semibold"><MapPin className="mt-0.5 size-3.5 shrink-0" style={{ color: brands[p.b].color }} />{brands[p.b].name}</span>
                   <span className="shrink-0 text-xs text-txt-2">{fmtKm(p.d)}</span>

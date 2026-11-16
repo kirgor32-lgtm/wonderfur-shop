@@ -1494,7 +1494,7 @@ function Checkout() {
   return box(!!st.items.length,
     <>
       <DialogTitle className="text-2xl font-extrabold">Где заберёте заказ?</DialogTitle>
-      <DialogDescription className="text-[15px] text-txt-2">{st.count} шт. на {sum}. Доставка до пункта 5Post бесплатная.</DialogDescription>
+      <DialogDescription className="text-[15px] text-txt-2">{st.count} шт. на {sum}. Доставка до пункта 5Post бесплатная.<span className="block sm:hidden">Нажмите на пункт в списке или на карте, затем — «Перейти к оплате» внизу.</span></DialogDescription>
       {!st.items.length ? (
         <Empty icon={ShoppingBag} text="Корзина пуста" action={['В каталог', () => st.setCheckout(false)]} />
       ) : (
@@ -1511,16 +1511,16 @@ function Checkout() {
                 <PickupPicker value={pt} onChange={(p) => { setPt(p); setErr('') }} />
               </Suspense>
               {/* ДЕМО-пометка: точки — магазины из OpenStreetMap, а не настоящий список 5Post */}
-              <p className="text-xs text-txt-2">Демо: на карте магазины «Пятёрочка» и «Перекрёсток» из открытой карты OpenStreetMap, не в каждом из них есть пункт 5Post.</p>
+              <p className="text-[11px] leading-4 text-txt-2 sm:text-xs">Демо: на карте магазины «Пятёрочка» и «Перекрёсток» из OpenStreetMap, не в каждом есть пункт 5Post.</p>
             </>
           )}
           <button type="button" onClick={() => { setManual(!manual); setErr('') }} className="text-sm text-violet-dark underline">{manual ? 'Выбрать на карте' : 'Нет нужного пункта? Напишите адрес'}</button>
-          <div className="flex flex-col gap-3 rounded-lg bg-white p-4 sm:flex-row sm:items-center">
+          <div className="sticky -bottom-5 z-10 -mx-5 -mb-5 flex flex-col gap-2 border-t border-gray-2 bg-white px-5 py-3 shadow-[0_-6px_16px_rgba(0,0,0,0.06)] sm:static sm:mx-0 sm:mb-0 sm:flex-row sm:items-center sm:gap-3 sm:rounded-lg sm:border-0 sm:p-4 sm:shadow-none">
             <div className="min-w-0 flex-1 text-sm">
-              {!manual && (pt ? <div className="font-semibold">{pt.b === 'p' ? 'Пятёрочка' : 'Перекрёсток'}, {pt.a}</div> : <div className="text-txt-2">Пункт не выбран</div>)}
-              <div className="text-txt-2"><span className="text-ink">{fullName}</span> · <span className="whitespace-nowrap">{st.user.phone}</span> · <button type="button" onClick={() => st.setUser(null)} className="underline hover:text-ink">Не вы?</button></div>
+              {!manual && (pt ? <div className="flex items-start gap-1.5 font-semibold"><Check className="mt-0.5 size-4 shrink-0 text-violet-dark" /><span>{pt.b === 'p' ? 'Пятёрочка' : 'Перекрёсток'}, {pt.a}</span></div> : <div className="text-txt-2">Пункт ещё не выбран — нажмите на него в списке</div>)}
+              <div className="hidden text-txt-2 sm:block"><span className="text-ink">{fullName}</span> · <span className="whitespace-nowrap">{st.user.phone}</span> · <button type="button" onClick={() => st.setUser(null)} className="underline hover:text-ink">Не вы?</button></div>
             </div>
-            <Button type="submit" disabled={busy} className={cn(inkBtn, 'h-12 shrink-0 px-8 text-base')}>Перейти к оплате</Button>
+            <Button type="submit" disabled={busy || (!manual && !pt)} className={cn(inkBtn, 'h-12 w-full shrink-0 px-8 text-base sm:w-auto')}>Перейти к оплате</Button>
           </div>
           {err && <p role="alert" className="text-sm text-destructive">{err}</p>}
         </form>
@@ -1718,7 +1718,7 @@ function Profile({ nav }) {
         <div className="rounded-lg bg-gray-1 p-4">
           <div className="flex items-center gap-3">
             <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-violet-dark text-lg font-bold text-white">{st.user.name[0]?.toUpperCase()}</span>
-            <div className="min-w-0 flex-1"><div className="font-bold">{[st.user.name, st.user.surname].filter(Boolean).join(' ')}</div><div className="whitespace-nowrap text-sm text-txt-2">{st.user.phone}</div>{st.user.email ? <div className="truncate text-sm text-txt-2">{st.user.email}</div> : <button type="button" onClick={() => { setEdit(true); setSaved(false) }} className="mt-1 inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 py-1 pl-2 pr-3 text-sm font-semibold text-ink hover:bg-red-100"><span className="relative flex size-2.5" aria-hidden><span className="absolute inline-flex size-full animate-ping rounded-full bg-red-500 opacity-60" /><span className="relative inline-flex size-2.5 rounded-full bg-red-500" /></span>Добавить почту</button>}{bday && <div className="text-sm text-txt-2">{bday}</div>}</div>
+            <div className="min-w-0 flex-1"><div className="font-bold">{[st.user.name, st.user.surname].filter(Boolean).join(' ')}</div><div className="whitespace-nowrap text-sm text-txt-2">{st.user.phone}</div>{st.user.email ? <div className="truncate text-sm text-txt-2">{st.user.email}</div> : <button type="button" onClick={() => { setEdit(true); setSaved(false) }} className="mt-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-red-200 bg-red-50 py-0.5 pl-2 pr-2.5 text-xs font-semibold leading-5 text-ink hover:bg-red-100"><span className="relative flex size-2" aria-hidden><span className="absolute inline-flex size-full animate-ping rounded-full bg-red-500 opacity-60" /><span className="relative inline-flex size-2 rounded-full bg-red-500" /></span>Добавить почту</button>}{bday && <div className="text-sm text-txt-2">{bday}</div>}</div>
             <button onClick={() => st.setUser(null)} className="flex items-center gap-1 self-start text-sm text-txt-2 hover:text-ink"><LogOut className="size-4" />Выйти</button>
           </div>
           <button onClick={() => { setEdit(true); setSaved(false) }} className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-violet-dark hover:underline"><Pencil className="size-3.5" />Изменить личные данные</button>

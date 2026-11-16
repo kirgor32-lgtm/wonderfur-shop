@@ -69,7 +69,12 @@ export function CallBox({ login, sent, move = false, onDone, onRetry, onChangePh
       timer = setTimeout(tick, 2000)
     }
     timer = setTimeout(tick, 2000)
-    return () => { stop = true; clearTimeout(timer) }
+    // после звонка телефон возвращает на вкладку: проверяем сразу, не ждём таймер (на iPhone он засыпает в фоне)
+    const back = () => { if (document.visibilityState === 'visible' && !stop) { clearTimeout(timer); tick() } }
+    document.addEventListener('visibilitychange', back)
+    window.addEventListener('pageshow', back)
+    window.addEventListener('focus', back)
+    return () => { stop = true; clearTimeout(timer); document.removeEventListener('visibilitychange', back); window.removeEventListener('pageshow', back); window.removeEventListener('focus', back) }
   }, [sent, login, move])
   const demoCall = async () => {
     setBusy(true)
@@ -81,6 +86,7 @@ export function CallBox({ login, sent, move = false, onDone, onRetry, onChangePh
   return (
     <div className="space-y-3">
       <p className="text-[15px]">Позвоните с номера {maskLogin(login)} на номер ниже. Разговаривать не нужно: звонок сбросится сам, и вход продолжится автоматически.</p>
+      <p className="text-[13px] text-txt-2">Звоните именно с номера {maskLogin(login)} — звонок с другого номера не засчитается.</p>
       {sent.demo ? (
         <div className={cn(R, 'space-y-2 border border-dashed border-gray-3 p-3 text-xs text-txt-2')}>
           <div>Демо: звонки пока не подключены. Здесь появится номер для звонка.</div>
@@ -323,8 +329,8 @@ export default function AuthFlow({ note }) {
           {sent?.channel === 'email' ? (
             <>Загляните в папку «Спам». Если в адресе ошибка — <button type="button" onClick={() => go('start')} className={linkCls}>измените почту</button>.</>
           ) : (
-            <>Сообщение ушло в чат с нашим ботом в {channelNames[sent?.channel]}. Нет его —{' '}
-              {wait > 0 ? <span>подтвердить номер звонком можно через {mmss(wait)}</span> : <button type="button" disabled={busy} onClick={() => request(kind, 'call')} className={linkCls}>подтвердите номер звонком</button>}.</>
+            <>Сообщение ушло в чат с нашим ботом в {channelNames[sent?.channel]}. Если сообщение не пришло,{' '}
+              {wait > 0 ? <span>подтвердить номер звонком можно через {mmss(wait)}</span> : <>подтвердите номер <button type="button" disabled={busy} onClick={() => request(kind, 'call')} className={linkCls}>звонком</button></>}.</>
           )}
         </div>
       )}
