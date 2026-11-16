@@ -139,10 +139,10 @@ function Header({ filter, nav }) {
   return (
     <header className="sticky top-0 z-40 bg-white">
       {/* верхняя строка, как у «Золотого Яблока»: город, доставка, телефон */}
-      <div className="bg-ink text-[14px] text-white max-[359px]:text-[12px] sm:text-[13px]">
+      <div className="bg-ink text-[14px] text-white max-[383px]:text-[13px] max-[359px]:text-[11.5px] sm:text-[13px]">
         <div className="wrap flex h-10 items-center justify-between gap-3 sm:h-9 sm:gap-4">
           <span className="truncate"><span className="whitespace-nowrap min-[400px]:hidden sm:hidden">Доставка в 5Post — 0 ₽</span><span className="hidden min-[400px]:inline sm:hidden">Бесплатная доставка в 5Post</span><span className="hidden sm:inline">Бесплатная доставка до пунктов 5Post по Санкт-Петербургу</span></span>
-          <a href={contacts.phoneHref} className="shrink-0 whitespace-nowrap text-[15px] font-bold tracking-wide max-[359px]:text-[14px] max-[359px]:tracking-normal hover:underline sm:text-[13px] sm:font-semibold sm:tracking-normal">{contacts.phone}<span className="hidden sm:inline"> · {contacts.hours}</span></a>
+          <a href={contacts.phoneHref} className="shrink-0 whitespace-nowrap text-[15px] font-bold tracking-wide max-[383px]:text-[14px] max-[383px]:tracking-normal max-[359px]:text-[12.5px] hover:underline sm:text-[13px] sm:font-semibold sm:tracking-normal">{contacts.phone}<span className="hidden sm:inline"> · {contacts.hours}</span></a>
         </div>
       </div>
       <div className="wrap flex h-[64px] items-center gap-3 lg:h-[84px] lg:gap-6">
