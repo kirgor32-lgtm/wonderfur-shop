@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css'
 import { Search, LocateFixed, Loader2, MapPin, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+try { sessionStorage.removeItem('wf-chunk-reload') } catch {} // карта загрузилась
 const SPB = [59.9386, 30.3141]
 const brands = { p: { name: 'Пятёрочка', color: '#d6352a' }, x: { name: 'Перекрёсток', color: '#1f7a3d' } }
 const km = (a, b) => {
@@ -33,7 +34,7 @@ export default function PickupPicker({ value, onChange }) {
     Promise.all([import('leaflet'), fetch(`${import.meta.env.BASE_URL}pickup-points.json`).then((r) => r.json())]).then(([mod, pts]) => {
       if (off || !box.current) return
       L.current = mod.default || mod
-      const m = L.current.map(box.current, { zoomControl: true, preferCanvas: true }).setView(value ? [value.lat, value.lon] : SPB, value ? 15 : 11)
+      const m = L.current.map(box.current, { zoomControl: true, renderer: L.current.canvas({ tolerance: 14 }) }).setView(value ? [value.lat, value.lon] : SPB, value ? 15 : 11)
       L.current.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© участники OpenStreetMap' }).addTo(m)
       m.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>')
       m.on('moveend', () => { const c = m.getCenter(); setCenter([c.lat, c.lng]) })
@@ -50,7 +51,7 @@ export default function PickupPicker({ value, onChange }) {
     const g = L.current.layerGroup()
     for (const p of points) {
       const sel = value?.id === p.id
-      L.current.circleMarker([p.lat, p.lon], { radius: sel ? 10 : 6, color: sel ? '#1d1c22' : '#fff', weight: sel ? 3 : 1.5, fillColor: brands[p.b].color, fillOpacity: 1 })
+      L.current.circleMarker([p.lat, p.lon], { radius: sel ? 11 : 7, color: sel ? '#1d1c22' : '#fff', weight: sel ? 3 : 1.5, fillColor: brands[p.b].color, fillOpacity: 1 })
         .bindTooltip(pointLabel(p)).on('click', () => onChange(p)).addTo(g)
     }
     g.addTo(map.current)
