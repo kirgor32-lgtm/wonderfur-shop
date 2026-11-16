@@ -1255,18 +1255,18 @@ function Panels({ nav }) {
             {st.items.map((i) => (
               <div key={i.key} className="flex gap-3 rounded-lg bg-gray-1 p-3">
                 <div className="flex size-20 shrink-0 items-center justify-center rounded-lg bg-white p-1"><img src={img(i.id)} alt="" className="max-h-full w-auto" /></div>
-                <div className="flex flex-1 flex-col">
-                  <div className="text-sm leading-snug"><b>{i.line}</b> {i.name} · {i.w}</div>
-                  <div className="mt-auto flex items-center justify-between pt-2">
-                    <div className="flex items-center rounded-lg bg-white">
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="break-words text-sm leading-snug"><b>{i.line}</b> {i.name} · {i.w}</div>
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-2">
+                    <div className="flex shrink-0 items-center rounded-lg bg-white">
                       <button className="flex size-8 items-center justify-center" onClick={() => st.setQty(i.key, i.qty - 1)} aria-label="Меньше"><Minus className="size-3.5" /></button>
                       <span className="w-6 text-center text-sm font-semibold">{i.qty}</span>
                       <button className="flex size-8 items-center justify-center" onClick={() => st.setQty(i.key, i.qty + 1)} aria-label="Больше"><Plus className="size-3.5" /></button>
                     </div>
-                    <span className="font-bold">{rub(i.price * i.qty)}</span>
+                    <span className="whitespace-nowrap font-bold">{rub(i.price * i.qty)}</span>
                   </div>
                 </div>
-                <button onClick={() => st.setQty(i.key, 0)} aria-label="Удалить" className="self-start text-txt-2 hover:text-ink"><Trash2 className="size-4" /></button>
+                <button onClick={() => st.setQty(i.key, 0)} aria-label="Удалить" className="-mr-1.5 -mt-1.5 flex size-8 shrink-0 items-center justify-center self-start text-txt-2 hover:text-ink"><Trash2 className="size-4" /></button>
               </div>
             ))}
           </div>
@@ -1369,7 +1369,7 @@ function Panels({ nav }) {
             <MenuLink to={pages.blog.path} onClick={close}>Блог</MenuLink>
             <MenuLink to={pages.faq.path} onClick={close}>Частые вопросы</MenuLink>
             <MenuLink to={pages.contacts.path} onClick={close}>Контакты</MenuLink>
-            <div className="mt-3 flex h-7 items-baseline justify-between gap-2"><a href={contacts.phoneHref} className="whitespace-nowrap text-lg font-bold">{contacts.phone}</a><span className="truncate text-xs text-txt-2">{contacts.hours}</span></div>
+            <div className="mt-3 flex h-7 items-baseline justify-between gap-2"><a href={contacts.phoneHref} className="whitespace-nowrap text-lg font-bold">{contacts.phone}</a><span className="truncate text-xs text-txt-2">{contacts.hours.replace(/^ежедневно\s*/, '')}</span></div>
             <div className="mt-3 grid grid-cols-2 gap-2">
               <a href={contacts.telegram} target="_blank" rel="noopener nofollow" className="flex h-10 items-center justify-center gap-2 rounded-lg bg-gray-2 text-sm font-semibold"><TgIcon className="size-5" />Telegram</a>
               <a href={contacts.max} target="_blank" rel="noopener nofollow" className="flex h-10 items-center justify-center gap-2 rounded-lg bg-gray-2 text-sm font-semibold"><MaxIcon className="size-5" />Max</a>
