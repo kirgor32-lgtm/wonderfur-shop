@@ -26,7 +26,7 @@ export async function authLive() {
   return live
 }
 export const authLiveNow = () => live === true
-const getSession = () => read('wf-session', null)
+export const getSession = () => read('wf-session', null)
 let lastCheck = null // { phone, account } — ответ CRM после верного кода или пароля
 
 export const authConfig = {
