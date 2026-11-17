@@ -39,10 +39,14 @@ export function StoreProvider({ children }) {
   const [panel, setPanel] = useState(null) // 'cart' | 'fav' | 'profile' | 'menu'
   const [checkout, setCheckout] = useState(false)
   const [compare, setCompare] = useState([]) // id товаров для сравнения состава, в рамках сессии
-  const [loyalty, setLoyalty] = useState(null) // { discountPct, bonus, accrualPct, maxSpendPct } из CRM — только после входа в кабинет
+  // { discountPct, bonus, accrualPct, maxSpendPct, phone } из CRM — только после входа в кабинет.
+  // Храним последнюю копию в браузере: корзина показывает скидку сразу, свежие данные подтягиваются в фоне
+  const [loyaltyRaw, setLoyaltyRaw] = usePersist('wf-loyalty', null)
+  const loyalty = loyaltyRaw && user && loyaltyRaw.phone === user.phone ? loyaltyRaw : null
+  const setLoyalty = (l) => setLoyaltyRaw(l && user ? { ...l, phone: user.phone } : null)
   const [bonusOn, setBonusOn] = useState(false)
   const [bonusWant, setBonusWant] = useState(0)
-  const refreshLoyalty = () => { const s = getSession(); if (!user || !s?.token) { setLoyalty(null); return } fetchLoyalty(s.token).then((l) => setLoyalty(l)) }
+  const refreshLoyalty = () => { const s = getSession(); if (!user || !s?.token) { if (loyaltyRaw) setLoyalty(null); return } fetchLoyalty(s.token).then((l) => { if (l || !loyaltyRaw) setLoyalty(l) }) }
   useEffect(() => { refreshLoyalty() }, [user?.phone]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (panel === 'cart' || checkout) refreshLoyalty() }, [panel, checkout]) // eslint-disable-line react-hooks/exhaustive-deps
   const [promo, setPromo] = useState(null) // применённый промокод в этой сессии, например PROMO
@@ -105,7 +109,7 @@ export function StoreProvider({ children }) {
     return { items, add, setQty, qtyOf, count, total, fav, favCount: fav.length, toggleFav, compare, toggleCompare, clearCompare: () => setCompare([]), user, setUser, orders, setOrders, placeOrder, panel, setPanel, checkout, setCheckout, promo, applyPromo, clearPromo, discount, totalWithDiscount, firstOrderEligible,
       loyalty, clientPct, clientDiscount, promoDiscount, bonusBalance, bonusMax, bonusOn, bonusSpent, bonusEarn,
       setBonusOn: (on) => { setBonusOn(on); if (on && !bonusWant) setBonusWant(bonusMax) }, setBonusWant }
-  }, [items, fav, compare, user, orders, panel, checkout, promo, promoRedeemed, loyalty, bonusOn, bonusWant])
+  }, [items, fav, compare, user, orders, panel, checkout, promo, promoRedeemed, loyaltyRaw, bonusOn, bonusWant])
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>
 }
