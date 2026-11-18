@@ -1291,7 +1291,7 @@ function Panels({ nav }) {
             )}
           </div>
           {askDel && st.items.some((i) => i.key === askDel) && (
-            <div className="absolute inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={() => setAskDel(null)}>
+            <div className="absolute inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onPointerDown={(e) => { e.currentTarget.dataset.down = e.target === e.currentTarget ? '1' : '' }} onClick={(e) => { if (e.target === e.currentTarget && e.currentTarget.dataset.down === '1') setAskDel(null) }}>
               <div role="alertdialog" aria-label="Удалить товар?" className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
                 <div className="text-lg font-bold">Удалить товар из корзины?</div>
                 <div className="mt-1 text-sm text-txt-2">Его можно будет снова добавить из каталога</div>
