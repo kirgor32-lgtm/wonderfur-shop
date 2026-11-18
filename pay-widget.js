@@ -1,4 +1,4 @@
-/*! pay-widget v1.0.0 | embeddable payment widget (SBP + cards) | built 2026-11-15 */
+/*! pay-widget v1.0.0 | embeddable payment widget (SBP + cards) | built 2026-11-18 */
 (function (global) {
 'use strict';
 // ---- src/qr.js ----
@@ -1338,8 +1338,10 @@ function createWidget(options, mountTarget) {
     'new-sbp': paySbp
   };
 
+  // клик по подложке закрывает окно, только если и нажатие было на подложке (не выделение текста из поля)
+  var downOut = false;
   function onClick(e) {
-    if (!inline && e.target === overlay) return close();
+    if (!inline && e.target === overlay) { var d = downOut; downOut = false; if (d) close(); return; }
     var el = e.target.closest ? e.target.closest('[data-action]') : null;
     if (!el || el.disabled) return;
     var fn = ACTIONS[el.getAttribute('data-action')];
@@ -1423,6 +1425,7 @@ function createWidget(options, mountTarget) {
     if (host.parentNode) host.parentNode.removeChild(host);
   }
 
+  root.addEventListener('pointerdown', function (e) { downOut = e.target === overlay; });
   root.addEventListener('click', onClick);
   root.addEventListener('input', onInput);
   root.addEventListener('submit', onSubmit);
