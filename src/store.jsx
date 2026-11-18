@@ -90,7 +90,7 @@ export function StoreProvider({ children }) {
     const promoDiscount = !promoOk ? 0 : promo.kind === 'fixed' ? Math.min(afterClient, promo.value) : Math.round(afterClient * promo.value / 100)
     const discount = clientDiscount + promoDiscount
     const bonusBalance = loyalty?.bonus || 0
-    const bonusMax = Math.min(bonusBalance, Math.floor((total - discount) * (loyalty?.maxSpendPct ?? 50) / 100))
+    const bonusMax = Math.max(0, Math.min(bonusBalance, total - discount - (loyalty?.minPay ?? 1))) // бонусами — весь заказ, кроме 1 ₽
     const bonusSpent = bonusOn ? Math.min(bonusWant, bonusMax) : 0
     const totalWithDiscount = total - discount - bonusSpent
     const bonusEarn = loyalty ? Math.floor(totalWithDiscount * (loyalty.accrualPct || 5) / 100) : 0
