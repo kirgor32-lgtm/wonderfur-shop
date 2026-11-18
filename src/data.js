@@ -246,19 +246,40 @@ export const products = [
   },
 ]
 
-// Карточка товара приходит из CRM (вкладка «Товары» → «Карточка для сайта»): цена, фасовки, категория,
+// Разделы каталога. В CRM в карточке товара выбирается «Раздел на сайте» — по нему товар попадает в подборку
+// (страница «Стерилизованным», «Котятам»…), а тексты сайта сами пересчитывают, сколько каких рецептов.
+// Если раздел в CRM не выбран — определяем по возрасту и тексту «Для кого».
+export const SECTIONS = {
+  sterile: { kind: 'cat', age: 'adult', label: 'стерилизованные кошки', one: 'для стерилизованных', many: 'для стерилизованных', dat: 'стерилизованным', gen: 'для стерилизованных кошек' },
+  kitten: { kind: 'cat', age: 'young', label: 'котята', one: 'для котят', many: 'для котят', dat: 'котятам', gen: 'для котят' },
+  urinary: { kind: 'cat', age: 'adult', label: 'кошки с МКБ струвитного типа', one: 'Urinary при МКБ струвитного типа', many: 'при МКБ струвитного типа', dat: 'при МКБ струвитного типа', gen: 'при МКБ' },
+  'cat-adult': { kind: 'cat', age: 'adult', label: 'взрослые кошки', one: 'для взрослых кошек', many: 'для взрослых кошек', dat: 'взрослым кошкам', gen: 'для взрослых кошек' },
+  'dog-adult': { kind: 'dog', age: 'adult', label: 'взрослые собаки', one: 'для взрослых собак всех пород', many: 'для взрослых собак всех пород', dat: 'взрослым всех пород', gen: 'для собак всех пород' },
+  small: { kind: 'dog', age: 'adult', label: 'собаки мелких пород', one: 'для мелких пород', many: 'для мелких пород', dat: 'мелким породам', gen: 'для мелких пород' },
+  puppy: { kind: 'dog', age: 'young', label: 'щенки', one: 'для щенков', many: 'для щенков', dat: 'щенкам', gen: 'для щенков' },
+}
+const guessSection = (p) => p.kind === 'cat'
+  ? (p.age === 'young' ? 'kitten' : /МКБ/i.test(p.ageLabel) ? 'urinary' : /стерилиз/i.test(p.ageLabel) ? 'sterile' : 'cat-adult')
+  : (p.age === 'young' ? 'puppy' : /мелк/i.test(p.ageLabel) ? 'small' : 'dog-adult')
+// адрес страницы из названия, если в CRM его не заполнили
+const TR = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'j', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'c', ч: 'ch', ш: 'sh', щ: 'shch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya' }
+const slugify = (t) => String(t).toLowerCase().replace(/[а-яё]/g, (ch) => TR[ch] ?? '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
+
+// Карточка товара приходит из CRM (вкладка «Товары» → «Карточка для сайта»): цена, фасовки, категория, раздел,
 // тексты, состав и фото (до 10, по порядку). См. scripts/fetch-crm-prices.mjs — запускается перед сборкой,
 // а на сервере CRM сама запускает пересборку после каждой правки. Пустое поле в CRM = оставляем текст отсюда.
-// Товар, которого нет в списке выше, появляется на сайте, если в CRM заполнены название, адрес страницы,
-// категория и хотя бы одна фасовка. «Скрыть с сайта» в CRM убирает товар.
+// Сайт показывает ТОЛЬКО товары из CRM: удалили товар в CRM — он пропал с сайта. Новый товар появляется, если
+// в CRM у него есть категория (кошки/собаки), название и хотя бы одна фасовка. «Скрыть с сайта» убирает товар.
 {
   const set = (p, key, v) => { if (v !== undefined && v !== null && String(v).trim() !== '') p[key] = v }
+  const fromCrm = Object.keys(generatedPrices).length > 0 // пустой файл = CRM ещё ни разу не ответила, оставляем список выше
+  if (fromCrm) for (let i = products.length; i--;) if (!generatedPrices[products[i].id]) products.splice(i, 1)
   for (const [id, g] of Object.entries(generatedPrices)) {
     let p = products.find((x) => x.id === id)
     const c = g.card
     if (!p) {
-      if (!c?.title || !c.slug || !g.weights?.length || !g.pet_type) continue
-      p = { id, slug: c.slug, kind: g.pet_type, age: 'adult', ageLabel: '', line: products[0].line, taste: '', name: c.title, short: c.title.toLowerCase(), bg: '', text: '', more: '', composition: null, weights: [] }
+      if (!c?.title || !g.weights?.length || !['cat', 'dog'].includes(g.pet_type)) continue
+      p = { id, slug: c.slug || slugify(c.title) || id, kind: g.pet_type, age: 'adult', ageLabel: '', line: products[0]?.line || 'Wonderfur', taste: '', name: c.title, short: c.title.toLowerCase(), bg: '', text: '', more: '', composition: null, weights: [], fromCrmOnly: true }
       products.push(p)
     }
     // CRM отдаёт фасовки по алфавиту — ставим по весу: 400 г, 2 кг, 5 кг
@@ -276,42 +297,74 @@ export const products = [
         p.composition = { top: c.composition_top || base.top, full: c.composition_full || base.full, analysis }
       }
       if (c.hidden) p.hidden = true
+      const sec = SECTIONS[c.section]
+      if (sec && sec.kind === p.kind) {
+        p.section = c.section
+        p.age = sec.age
+        if (!String(c.age_label || '').trim()) p.ageLabel = sec.label
+      }
     }
     if (g.images?.length) { p.images = g.images.map((f) => `img/crm/${f}`); photos[id] = BASE + p.images[0] }
+    else if (p.fromCrmOnly) photos[id] = `${BASE}img/no-photo.svg` // фото ещё не загрузили в CRM
   }
   for (let i = products.length; i--;) if (products[i].hidden) products.splice(i, 1)
+  for (const p of products) {
+    if (!SECTIONS[p.section] || SECTIONS[p.section].kind !== p.kind) p.section = guessSection(p)
+    if (!p.ageLabel) p.ageLabel = SECTIONS[p.section].label
+  }
+  // слаги должны быть уникальны внутри раздела — иначе две карточки на одном адресе
+  const seen = new Set()
+  for (const p of products) { let sl = p.slug, n = 2; while (seen.has(`${p.kind}/${sl}`)) sl = `${p.slug}-${n++}`; p.slug = sl; seen.add(`${p.kind}/${sl}`) }
 }
 
 const fmt = (n) => n.toLocaleString('ru-RU').replace(/\u202f| /g, '\u00a0')
-const from = (kind) => fmt(Math.min(...products.filter((p) => p.kind === kind).flatMap((p) => p.weights.map((w) => w.price))))
+const minOf = (list) => (list.length ? fmt(Math.min(...list.flatMap((p) => p.weights.map((w) => w.price)))) : '—')
+const from = (kind) => minOf(products.filter((p) => p.kind === kind))
 const count = (kind) => products.filter((p) => p.kind === kind).length
+// «1 рецепт», «3 рецепта», «7 рецептов»
+export const recipes = (n) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? 'рецепт' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'рецепта' : 'рецептов'}`
+const WORD = ['', '', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять', 'десять']
+const andJoin = (a) => (a.length > 1 ? `${a.slice(0, -1).join(', ')} и ${a[a.length - 1]}` : a[0] || '')
+const grams = (w) => { const m = String(w).replace(',', '.').match(/([\d.]+)\s*(кг|г)/i); return m ? Number(m[1]) * (/кг/i.test(m[2]) ? 1000 : 1) : 1e9 }
+// фасовки товаров списком: «400 г, 2 кг и 5 кг» или «от 400 г до 10 кг», если их много
+export const weightsText = (list) => {
+  const ws = [...new Set(list.flatMap((p) => p.weights.map((w) => w.w)))].sort((a, b) => grams(a) - grams(b))
+  return ws.length > 3 ? `от ${ws[0]} до ${ws[ws.length - 1]}` : andJoin(ws)
+}
+const sectionsOf = (kind) => Object.keys(SECTIONS).filter((k) => SECTIONS[k].kind === kind).map((k) => [k, products.filter((p) => p.section === k).length]).filter(([, n]) => n)
+// «пять для стерилизованных, для котят и Urinary при МКБ струвитного типа»
+export const lineup = (kind) => andJoin(sectionsOf(kind).map(([k, n]) => (n > 1 ? `${WORD[n] || n} ${SECTIONS[k].many}` : SECTIONS[k].one)))
+// «стерилизованным, котятам и при МКБ струвитного типа»
+const lineupDat = (kind) => andJoin(sectionsOf(kind).map(([k]) => SECTIONS[k].dat))
+// «для стерилизованных кошек, котят, при МКБ, для собак всех пород, мелких пород и щенков» — для баннера
+export const lineupAll = () => andJoin(['cat', 'dog'].flatMap((kind) => sectionsOf(kind).map(([k]) => SECTIONS[k].gen)))
+const kindText = (kind, what) => ({
+  desc: `Сухой корм Wonderfur для ${what}${lineupDat(kind) ? `: ${lineupDat(kind)}` : ''}. Фасовки ${weightsText(products.filter((p) => p.kind === kind))}. Цены от ${from(kind)} ₽, бесплатная доставка до пунктов 5Post в СПб.`,
+  intro: `${recipes(count(kind))} для ${what}${lineup(kind) ? `: ${lineup(kind)}` : ''}. Фасовки ${weightsText(products.filter((p) => p.kind === kind))}. Бесплатная доставка до пунктов выдачи 5Post в Санкт-Петербурге.`,
+})
 export const kinds = {
   cat: { path: 'koshkam/', menu: 'Кошкам', h1: 'Сухой корм для кошек Wonderfur',
-    title: 'Сухой корм для кошек Wonderfur — купить в Санкт-Петербурге',
-    desc: `Сухой корм Wonderfur для кошек: стерилизованным, котятам и при МКБ струвитного типа. Фасовки 400 г, 2 и 5 кг. Цены от ${from('cat')} ₽, бесплатная доставка до пунктов 5Post в СПб.`,
-    intro: `${count('cat')} рецептов для кошек: пять для стерилизованных, для котят и Urinary при МКБ струвитного типа. Фасовки 400 г, 2 кг и 5 кг. Бесплатная доставка до пунктов выдачи 5Post в Санкт-Петербурге.` },
+    title: 'Сухой корм для кошек Wonderfur — купить в Санкт-Петербурге', ...kindText('cat', 'кошек') },
   dog: { path: 'sobakam/', menu: 'Собакам', h1: 'Сухой корм для собак Wonderfur',
-    title: 'Сухой корм для собак Wonderfur — купить в Санкт-Петербурге',
-    desc: `Сухой корм Wonderfur для собак: взрослым всех пород, мелким породам и щенкам. Фасовки от 400 г до 10 кг. Цены от ${from('dog')} ₽, бесплатная доставка до пунктов 5Post в СПб.`,
-    intro: `${count('dog')} рецептов для собак: три для взрослых собак всех пород, три для мелких пород и для щенков мелких и средних пород. Фасовки от 400 г до 10 кг. Бесплатная доставка до пунктов выдачи 5Post в Санкт-Петербурге.` },
+    title: 'Сухой корм для собак Wonderfur — купить в Санкт-Петербурге', ...kindText('dog', 'собак') },
 }
 // Подборки внутри разделов — свои страницы с адресом (а не фильтр на главной), чтобы их находили поисковики.
 // Состав подборки считается по товарам, поэтому новые/скрытые в CRM товары учитываются сами.
 const segOf = (test) => products.filter(test)
-const segFrom = (test) => fmt(Math.min(...segOf(test).flatMap((p) => p.weights.map((w) => w.price))))
-const segWeights = (test) => [...new Set(segOf(test).flatMap((p) => p.weights.map((w) => w.w)))].join(', ')
+const segFrom = (test) => minOf(segOf(test))
+const segWeights = (test) => weightsText(segOf(test))
 const seg = (o) => ({ ...o, get count() { return segOf(o.test).length }, get from() { return segFrom(o.test) }, get weights() { return segWeights(o.test) } })
 export const segments = {
   sterile: seg({ kind: 'cat', path: 'koshkam/sterilizovannym/', menu: 'Стерилизованным', story: 'стерилизованным', img: 'cat-sterile-turkey-lamb',
-    test: (p) => p.kind === 'cat' && /стерилиз/i.test(p.ageLabel), h1: 'Корм для стерилизованных кошек Wonderfur', what: 'для стерилизованных кошек и кастрированных котов' }),
+    test: (p) => p.section === 'sterile', h1: 'Корм для стерилизованных кошек Wonderfur', what: 'для стерилизованных кошек и кастрированных котов' }),
   kitten: seg({ kind: 'cat', path: 'koshkam/kotyatam/', menu: 'Котятам', story: 'котятам', img: 'cat-kitten-turkey-chicken',
-    test: (p) => p.kind === 'cat' && p.age === 'young', h1: 'Корм для котят Wonderfur', what: 'для котят' }),
+    test: (p) => p.section === 'kitten', h1: 'Корм для котят Wonderfur', what: 'для котят' }),
   urinary: seg({ kind: 'cat', path: 'koshkam/pri-mkb/', menu: 'При МКБ', story: 'при МКБ', img: 'cat-urinary',
-    test: (p) => p.kind === 'cat' && /МКБ/.test(p.ageLabel), h1: 'Корм Wonderfur Urinary для кошек при МКБ', what: 'для кошек с МКБ струвитного типа' }),
+    test: (p) => p.section === 'urinary', h1: 'Корм Wonderfur Urinary для кошек при МКБ', what: 'для кошек с МКБ струвитного типа' }),
   small: seg({ kind: 'dog', path: 'sobakam/melkim-porodam/', menu: 'Мелким породам', story: 'мелким породам', img: 'dog-small-chicken-potato',
-    test: (p) => p.kind === 'dog' && /мелких пород/.test(p.ageLabel) && p.age !== 'young', h1: 'Корм для собак мелких пород Wonderfur', what: 'для взрослых собак мелких пород' }),
+    test: (p) => p.section === 'small', h1: 'Корм для собак мелких пород Wonderfur', what: 'для взрослых собак мелких пород' }),
   puppy: seg({ kind: 'dog', path: 'sobakam/shchenkam/', menu: 'Щенкам', story: 'щенкам', img: 'dog-puppy-turkey-rice',
-    test: (p) => p.kind === 'dog' && p.age === 'young', h1: 'Корм для щенков Wonderfur', what: 'для щенков' }),
+    test: (p) => p.section === 'puppy', h1: 'Корм для щенков Wonderfur', what: 'для щенков' }),
   young: seg({ kind: '', path: 'kotyatam-i-shchenkam/', menu: 'Котятам и щенкам', img: 'cat-kitten-turkey-chicken',
     test: (p) => p.age === 'young', h1: 'Корм для котят и щенков Wonderfur', what: 'для котят и щенков' }),
 }
@@ -320,24 +373,34 @@ for (const s of Object.values(segments)) {
   Object.defineProperty(s, 'desc', { get: () => `${s.h1}: ${s.count} ${s.count === 1 ? 'рецепт' : s.count < 5 ? 'рецепта' : 'рецептов'}, фасовки ${s.weights}. Цены от ${s.from} ₽, бесплатная доставка до пунктов 5Post в СПб.` })
   Object.defineProperty(s, 'intro', { get: () => `Сухие корма Wonderfur ${s.what}: ${s.count} ${s.count === 1 ? 'рецепт' : s.count < 5 ? 'рецепта' : 'рецептов'} от российского завода КРОКЕТ, фасовки ${s.weights}. Цены от ${s.from} ₽. Бесплатная доставка до пунктов выдачи 5Post в Санкт-Петербурге.` })
 }
-export const minAll = fmt(Math.min(...products.flatMap((p) => p.weights.map((w) => w.price))))
+export const minAll = minOf(products)
+// Упаковки для баннера на главной — из того, что сейчас есть в каталоге: кошка, собака и котёнок/щенок
+export const heroPacks = (() => {
+  const withPhoto = products.filter((p) => !p.fromCrmOnly || p.images?.length)
+  const pick = (...tests) => { for (const t of tests) { const p = withPhoto.find((x) => t(x) && !out.includes(x)); if (p) return p } return withPhoto.find((x) => !out.includes(x)) }
+  const out = []
+  for (const tests of [[(p) => p.section === 'sterile', (p) => p.kind === 'cat'], [(p) => p.section === 'dog-adult', (p) => p.kind === 'dog'], [(p) => p.age === 'young']]) { const p = pick(...tests); if (p) out.push(p) }
+  return out
+})()
 export const productPath = (p) => `${kinds[p.kind].path}${p.slug}/`
 export const minPrice = (p) => Math.min(...p.weights.map((w) => w.price))
 
 // Популярные запросы в подсказках поиска
 export const searchHints = ['стерилизованных', 'котят', 'щенков', 'мелких пород', 'Urinary', 'индейка', 'ягнёнок', 'утка', 'белая рыба', 'говядина']
+  .filter((h) => products.some((p) => `${p.name} ${p.short} ${p.taste} ${p.ageLabel}`.toLowerCase().includes(h.toLowerCase().slice(0, Math.max(4, h.length - 2))))) // подсказка без товаров не нужна
 
 export const benefits = [
   { icon: 'Drumstick', title: 'До 46% мясных ингредиентов', text: 'В рецептах для кошек — от 40 до 46%, в Urinary — 23% мяса птицы' },
   { icon: 'HeartPulse', title: 'Функциональные добавки', text: 'Хондропротекторы, пребиотик МОС, таурин, L-карнитин, масло лосося' },
-  { icon: 'Scale', title: 'Под возраст и особенности', text: 'Стерилизованным кошкам, котятам, при МКБ, мелким породам и щенкам' },
+  { icon: 'Scale', title: 'Под возраст и особенности', text: (() => { const t = andJoin(['cat', 'dog'].flatMap((k) => sectionsOf(k).map(([s]) => SECTIONS[s].dat)).filter((d) => !/взрослым/.test(d))); return t ? t[0].toUpperCase() + t.slice(1) : 'Для кошек и собак разного возраста' })() },
 ]
 
+const packs = [...new Set(products.map((p) => p.weights.length))].sort((a, b) => a - b)
 export const stats = [
-  ['14', 'рецептов'],
+  [String(products.length), recipes(products.length).replace(/^\d+ /, '')],
   ['до 46%', 'мясных ингредиентов'],
-  ['3', 'фасовки у каждого рецепта'],
-  ['7 + 7', 'рецептов для кошек и для собак'],
+  packs.length === 1 ? [String(packs[0]), `${packs[0] === 1 ? 'фасовка' : packs[0] < 5 ? 'фасовки' : 'фасовок'} у каждого рецепта`] : [`${packs[0]}–${packs[packs.length - 1]}`, 'фасовки у рецепта'],
+  [`${count('cat')} + ${count('dog')}`, 'рецептов для кошек и для собак'],
 ]
 
 // Что известно о линейке (crocat.ru/brands/wonderfur)
@@ -345,7 +408,16 @@ export const checks = [
   { n: '01', title: 'Суперпремиум', text: 'Wonderfur — флагманский бренд российского завода КРОКЕТ' },
   { n: '02', title: 'Мясо на первом месте', text: 'Сушёное и измельчённое мясо — первый ингредиент почти во всех рецептах' },
   { n: '03', title: 'Ягоды и травы', text: 'Клюква, черника, шиповник, Юкка Шидигера, экстракты цикория и календулы' },
-  { n: '04', title: 'Без пшеницы и сои', text: 'Ни в одном из 14 рецептов нет пшеницы и сои — это видно по составу каждого корма' },
+  // считаем по составам: утверждаем, только если у каждого товара есть состав и в нём правда нет пшеницы/сои
+  ...(() => {
+    const full = products.map((p) => p.composition?.full || '')
+    if (!full.length || full.some((f) => !f)) return []
+    const noWheat = full.every((f) => !/пшени/i.test(f)), noSoy = full.every((f) => !/(^|[^а-яё])со[яиюе]([^а-яё]|$)|соев/i.test(f))
+    const n = `${products.length} ${products.length % 10 === 1 && products.length % 100 !== 11 ? 'рецепта' : 'рецептов'}`
+    if (noWheat && noSoy) return [{ n: '04', title: 'Без пшеницы и сои', text: `Ни в одном из ${n} нет пшеницы и сои — это видно по составу каждого корма` }]
+    if (noSoy) return [{ n: '04', title: 'Без сои', text: `Ни в одном из ${n} нет сои — это видно по составу каждого корма` }]
+    return []
+  })(),
 ]
 
 export const posts = [
@@ -356,7 +428,7 @@ export const posts = [
   { slug: 'mkb-struvitnogo-tipa-u-koshek', tag: 'здоровье', title: 'МКБ струвитного типа у кошек: зачем подкислять мочу', text: 'Как работают рационы Urinary и почему их назначает врач.', min: 5, tone: 'bg-[#f2f2f2]', img: 'cat-urinary', rel: ['cat-urinary'],
     body: ['Струвиты — кристаллы, которые образуются в щелочной моче. Рационы для кошек с МКБ струвитного типа подкисляют мочу: в Wonderfur Urinary для этого добавлены DL-метионин, хлорид аммония и клюква.', 'Тип камней определяет ветеринарный врач по анализу мочи — при оксалатах подкисляющий рацион не подходит.', 'Поэтому такие корма не дают «на всякий случай»: перед переводом кошки обязательно проконсультируйтесь со специалистом.'] },
   { slug: 'pitanie-posle-sterilizacii-koshki', tag: 'здоровье', title: 'Питание кошки после стерилизации', text: 'Энергии кошке нужно меньше, а аппетит растёт. Как подобрать корм и порцию.', min: 6, tone: 'bg-[#f2f2f2]', img: 'cat-sterile-turkey-duck', rel: ['cat-sterile-turkey-duck', 'cat-sterile-turkey-chicken'],
-    body: ['После стерилизации кошке обычно нужно меньше энергии, а аппетит часто растёт.', 'Поэтому переходят на корм для стерилизованных кошек с L-карнитином — в линейке Wonderfur таких рецептов пять, с разными вкусами — и следят за порцией.', 'Переводите на новый корм постепенно, за 7–10 дней.'] },
+    body: ['После стерилизации кошке обычно нужно меньше энергии, а аппетит часто растёт.', `Поэтому переходят на корм для стерилизованных кошек с L-карнитином${segments.sterile.count > 1 ? ` — в линейке Wonderfur таких ${recipes(segments.sterile.count).replace(/^\d+/, WORD[segments.sterile.count] || segments.sterile.count)}, с разными вкусами —` : ''} и следят за порцией.`, 'Переводите на новый корм постепенно, за 7–10 дней.'] },
 ]
 
 export const contactTopics = [
@@ -364,12 +436,16 @@ export const contactTopics = [
   { id: 'order', label: 'Проблема с заказом', text: 'Что-то пошло не так с заказом или доставкой? Напишите номер заказа — разберёмся.', done: 'Разберёмся и ответим на вопросы по заказу.' },
   { id: 'review', label: 'Оставить отзыв', text: 'Напишите, подошёл ли корм вашему питомцу.', done: 'Спасибо за отзыв.' },
   { id: 'sales', label: 'Оптовым покупателям', text: 'Поставки в зоомагазины и ветклиники Санкт-Петербурга.', done: 'Спасибо, свяжемся и обсудим условия поставки.' },
-  { id: 'breeders', label: 'Заводчикам', text: 'Условия для питомников и заводчиков: крупные фасовки до 10 кг для собак и 5 кг для кошек.', done: 'Спасибо, свяжемся и расскажем об условиях для питомника.' },
 ]
 
 export const faq = [
   { q: 'Чем корм для кошек отличается от корма для собак?', a: 'Кошкам нужно больше животного белка и обязательно таурин — сами они его почти не вырабатывают. Поэтому в кошачьих рецептах Wonderfur белка 34–35%, а в собачьих — 26–28%. Кормить кошку собачьим кормом (и наоборот) не стоит.' },
-  { q: 'Что значат буквы K, D, F, M, A, V, P на упаковках?', a: 'Так производитель обозначает рецепты: K — индейка и ягнёнок, D — индейка и телятина, F — индейка и курица, M — индейка и утка (для стерилизованных кошек); A — ягнёнок и рис, V — индейка и рис, P — говядина и рис (для взрослых собак).' },
+  ...(() => {
+    const coded = products.filter((p) => p.code && p.taste)
+    if (!coded.length) return []
+    const groups = [...new Set(coded.map((p) => p.section))].map((s) => `${coded.filter((p) => p.section === s).map((p) => `${p.code} — ${p.taste}`).join(', ')} (${SECTIONS[s].gen})`)
+    return [{ q: `Что значат буквы ${coded.map((p) => p.code).join(', ')} на упаковках?`, a: `Так производитель обозначает рецепты: ${groups.join('; ')}.` }]
+  })(),
   { q: 'Как перевести питомца на новый корм?', a: 'Постепенно, за 7–10 дней. Начните с четверти нового корма в миске и каждые два-три дня увеличивайте долю, пока старый не уйдёт совсем.' },
   { q: 'Сколько корма давать в день?', a: 'Таблица дозировки есть на каждой упаковке. Ориентируйтесь на вес питомца и следите за фигурой: если набирает — уменьшите порцию на 10%.' },
   { q: 'Как хранить открытую упаковку?', a: 'Плотно закройте пакет и держите его в сухом прохладном месте, не на солнце. Срок годности указан на упаковке.' },
@@ -398,10 +474,10 @@ export const pages = {
       ['Как оформить', 'Напишите нам в Telegram или Max, приложите фото упаковки и номер заказа — подскажем, как вернуть корм.'],
     ] },
   about: { path: 'o-brende/', title: 'О бренде и производителе кормов Wonderfur', h1: 'О бренде Wonderfur',
-    desc: 'Wonderfur — сухие корма суперпремиум-класса российского завода КРОКЕТ: 14 рецептов для кошек и собак, до 46% мясных ингредиентов.',
+    desc: `Wonderfur — сухие корма суперпремиум-класса российского завода КРОКЕТ: ${recipes(products.length)} для кошек и собак, до 46% мясных ингредиентов.`,
     body: [
       ['Производитель', 'Корма Wonderfur выпускает завод сухих экструдированных кормов КРОКЕТ (ООО «КРОКЕТ»), г. Новосибирск, ул. Большая, 308/7.'],
-      ['Линейка', '14 рецептов: пять для стерилизованных кошек, для котят, Urinary при МКБ струвитного типа, три для взрослых собак, три для мелких пород и для щенков. У каждого рецепта три фасовки.'],
+      ['Линейка', `${recipes(products.length)}: для кошек — ${lineup('cat') || 'пока нет'}; для собак — ${lineup('dog') || 'пока нет'}. Фасовки ${weightsText(products)}.`],
       ['Состав', 'Мясные ингредиенты — до 46%. В рецептах — хондропротекторы, пребиотик МОС, таурин, L-карнитин, масло лосося, ягоды и травяные экстракты; в части рецептов — пробиотик Муцинол.'],
       ['Товарный знак', 'Wonderfur — зарегистрированный товарный знак № 942837.'],
       ['Наш магазин', 'Мы продаём корма Wonderfur в Санкт-Петербурге через интернет — с бесплатной доставкой до пунктов выдачи 5Post.'],

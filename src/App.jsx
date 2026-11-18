@@ -5,7 +5,7 @@ const PickupPicker = lazy(() => import('./PickupPicker').catch((e) => {
   throw e
 }))
 import {
-  Search, ShoppingBag, Heart, User, Menu, X, Minus, Plus, ChevronRight, ChevronDown, Phone, Clock, LogOut, Package, Pencil,
+  Search, ShoppingBag, Heart, User, Menu, X, Minus, Plus, ChevronRight, ChevronDown, Phone, Clock, LogOut, Package, Gift, Pencil,
   Drumstick, Scale, HeartPulse, ShieldCheck, Factory, BadgeCheck, Check, Trash2, Loader2, Send, Truck, Sparkles, Sprout, Cookie,
   BadgePercent,
 } from 'lucide-react'
@@ -25,7 +25,7 @@ import AuthFlow, { PassInput, CallBox } from './AuthFlow'
 import { track, sendLead, crmEnabled, fetchOrderStatus } from './crm'
 import {
   BASE, contacts, seller, products, kinds, segments, searchHints, benefits, stats, checks, posts, contactTopics, faq, pages,
-  productPath, minPrice, img, declaration, manufacturer, minAll,
+  productPath, minPrice, img, declaration, manufacturer, minAll, heroPacks, lineupAll, recipes,
 } from './data'
 
 const icons = { Drumstick, Scale, HeartPulse, ShieldCheck, Factory, BadgeCheck }
@@ -123,11 +123,13 @@ function Logo({ light, onClick }) {
 }
 
 /* ---------------- шапка ---------------- */
+// подборка без товаров (всё удалили или скрыли в CRM) — ссылку не показываем, страницы у неё тоже нет
+const segLink = (id, label) => (segments[id].count ? [[label, segments[id].path]] : [])
 const mainNav = [
   ['кошкам', kinds.cat.path],
   ['собакам', kinds.dog.path],
-  ['стерилизованным', segments.sterile.path],
-  ['котятам и щенкам', segments.young.path],
+  ...segLink('sterile', 'стерилизованным'),
+  ...segLink('young', 'котятам и щенкам'),
   ['доставка и оплата', pages.delivery.path],
   ['о бренде', pages.about.path],
   ['блог', pages.blog.path],
@@ -304,6 +306,7 @@ function Home({ filter, setFilter, nav, topic, setTopic }) {
 }
 
 function Hero({ nav }) {
+  const st = useStore()
   return (
     <section className="wrap pt-4 lg:pt-6">
       {/* большой баннер, как промо-слайд «Золотого Яблока»: серый фон, крупный текст, товары справа */}
@@ -311,9 +314,9 @@ function Hero({ nav }) {
         <div className="relative z-10 p-5 sm:p-10 xl:p-16">
           <span className="kicker hidden text-txt-2 sm:inline">суперпремиум · Санкт-Петербург</span>
           <h1 className="text-balance text-[24px] font-semibold leading-[1.1] tracking-[-0.02em] sm:mt-4 sm:text-[44px] sm:leading-[1.05] sm:tracking-[-0.03em] xl:text-[64px]">Корма Wonderfur для кошек и собак</h1>
-          <p className="mt-2 text-[14px] leading-snug text-txt-2 sm:hidden">{products.length} рецептов · от {minAll} ₽ · доставка бесплатно</p>
+          <p className="mt-2 text-[14px] leading-snug text-txt-2 sm:hidden">{recipes(products.length)} · от {minAll} ₽ · доставка бесплатно</p>
           <p className="mt-4 hidden max-w-[460px] text-lg leading-snug text-txt-2 sm:block">
-            {products.length} рецептов с мясом до 46%: для стерилизованных кошек, котят, при МКБ, для собак всех пород, мелких пород и щенков. От {minAll} ₽, доставка по Петербургу бесплатно.
+            {recipes(products.length)} с мясом до 46%: {lineupAll()}. От {minAll} ₽, доставка по Петербургу бесплатно.
           </p>
           <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-8 sm:flex sm:flex-wrap">
             <Link to={kinds.cat.path} className="flex h-11 items-center justify-center rounded-full bg-ink px-7 text-[15px] font-medium text-white hover:bg-ink-2 sm:h-12">кошкам</Link>
@@ -321,31 +324,20 @@ function Hero({ nav }) {
           </div>
         </div>
         <div data-overlap="ok" className="pointer-events-none relative -mt-2 flex h-[210px] min-w-0 items-end justify-center overflow-hidden px-4 sm:mt-0 sm:h-[380px] sm:pt-4 md:h-[480px] xl:h-[540px]">
-          <img src={img('cat-sterile-turkey-duck')} {...IMG} alt="Упаковка Wonderfur для стерилизованных кошек с индейкой и уткой" fetchPriority="high" className="relative z-10 -mr-[6%] h-[80%] w-[30%] min-w-0 -rotate-6 object-contain object-bottom drop-shadow-xl" />
-          <img src={img('dog-lamb-rice')} {...IMG} alt="Упаковка Wonderfur для взрослых собак с ягнёнком и рисом" fetchPriority="high" className="relative z-20 h-[92%] w-[36%] min-w-0 object-contain object-bottom drop-shadow-xl" />
-          <img src={img('cat-kitten-turkey-chicken')} {...IMG} alt="Упаковка Wonderfur для котят" fetchPriority="high" className="relative z-10 -ml-[6%] h-[76%] w-[30%] min-w-0 rotate-6 object-contain object-bottom drop-shadow-xl" />
+          {/* упаковки — из текущего каталога: удалили товар в CRM, и его пачка здесь больше не появится */}
+          {heroPacks.map((p, i) => (
+            <img key={p.id} src={img(p.id)} {...IMG} alt={`Упаковка: ${p.name}`} fetchPriority="high"
+              className={cn('relative min-w-0 object-contain object-bottom drop-shadow-xl', heroPacks.length === 3
+                ? ['z-10 -mr-[6%] h-[80%] w-[30%] -rotate-6', 'z-20 h-[92%] w-[36%]', 'z-10 -ml-[6%] h-[76%] w-[30%] rotate-6'][i]
+                : 'z-10 h-[88%] w-[36%]')} />
+          ))}
         </div>
-      </div>
-      {/* круглые «истории»-категории, как на «Золотом Яблоке» */}
-      <div className="no-scrollbar -mx-1 mt-5 flex gap-4 overflow-x-auto px-1 pb-1 pt-1 sm:gap-6">
-        {[
-          ...['sterile', 'kitten', 'urinary'].map((s) => [segments[s].story, segments[s].img, segments[s].path]),
-          ['собакам', 'dog-beef-rice', kinds.dog.path],
-          ...['small', 'puppy'].map((s) => [segments[s].story, segments[s].img, segments[s].path]),
-        ].map(([l, im, to]) => (
-          <Link key={l} to={to} className="group flex w-[84px] shrink-0 flex-col items-center gap-2 sm:w-[104px]">
-            <span className="flex size-[84px] items-center justify-center overflow-hidden rounded-full bg-gray-1 ring-1 ring-transparent transition group-hover:ring-ink sm:size-[104px]">
-              <img src={img(im)} {...IMG} loading="lazy" alt="" className="h-[78%] w-[78%] object-contain transition group-hover:scale-105" />
-            </span>
-            <span className="w-full text-center text-[13px] leading-tight [overflow-wrap:anywhere]">{l === 'стерилизованным' ? 'стерили­зованным' : l}</span>
-          </Link>
-        ))}
       </div>
       <div className="no-scrollbar mt-6 grid grid-flow-col gap-3 overflow-x-auto md:grid-flow-row md:grid-cols-2 lg:grid-cols-4">
         {[
           ['бесплатная доставка', 'до пунктов 5Post', Truck, pages.delivery.path],
           ['подбор корма', 'по возрасту и весу', Sparkles, null, 'pick'],
-          ['заводчикам', 'фасовки до 10 кг', Package, null, 'breeders'],
+          ['5% бонусами', 'с каждого заказа · 1 бонус = 1 ₽', Gift, null, 'bonus'],
           ['напишите нам', 'в Telegram и Max', Send, pages.contacts.path],
         ].map(([a, b, I, to, t]) => {
           const inner = (
@@ -356,7 +348,7 @@ function Hero({ nav }) {
             </>
           )
           const cls = 'flex min-w-[230px] md:min-w-0 items-center gap-3 rounded-xl border border-gray-2 px-4 py-4 text-left transition-colors hover:border-ink'
-          return to ? <Link key={a} to={to} className={cls}>{inner}</Link> : <button key={a} onClick={() => nav.contact(t)} className={cls}>{inner}</button>
+          return to ? <Link key={a} to={to} className={cls}>{inner}</Link> : <button key={a} onClick={() => (t === 'bonus' ? st.setPanel('profile') : nav.contact(t))} className={cls}>{inner}</button>
         })}
       </div>
     </section>
@@ -764,10 +756,8 @@ function SeoText() {
       <div className="max-w-[900px] text-[15px] leading-relaxed text-txt-2">
         <h2 className="mb-3 text-xl font-semibold text-ink">Купить корм Wonderfur в Санкт-Петербурге</h2>
         <p>
-          В нашем магазине — вся линейка сухих кормов Wonderfur от российского завода КРОКЕТ: семь рецептов для кошек (пять для стерилизованных, для котят и Urinary
-          при МКБ струвитного типа) и семь для собак (для взрослых всех пород, мелких пород и щенков). Корма для кошек и мелких собак — в пакетах 400 г, 2 кг и 5 кг,
-          для взрослых собак всех пород — 800 г, 3 кг и 10 кг. Доставка бесплатная: привезём заказ в пункт выдачи 5Post в Санкт-Петербурге — постамат или кассу
-          «Пятёрочки» и «Перекрёстка».
+          В нашем магазине — сухие корма Wonderfur от российского завода КРОКЕТ: {kinds.cat.intro.split('. Бесплатная')[0]}. {kinds.dog.intro.split('. Бесплатная')[0]}.
+          Доставка бесплатная: привезём заказ в пункт выдачи 5Post в Санкт-Петербурге — постамат или кассу «Пятёрочки» и «Перекрёстка».
         </p>
       </div>
     </section>
@@ -950,7 +940,7 @@ function BlogPage() {
 }
 
 function PostPage({ post }) {
-  const rel = post.rel.map(byId)
+  const rel = post.rel.map(byId).filter(Boolean) // товар могли удалить в CRM
   return (
     <>
       <Crumbs items={[['Блог', pages.blog.path], [post.title, `blog/${post.slug}/`]]} />
@@ -1085,8 +1075,8 @@ function NotFound() {
 function Footer({ nav }) {
   const cols = [
     ['Покупателям', [['Доставка и оплата', pages.delivery.path], ['Возврат и обмен', pages.returns.path], ['Частые вопросы', pages.faq.path], ['Контакты', pages.contacts.path]]],
-    ['О бренде', [['О бренде и заводе', pages.about.path], ['Блог о питании', pages.blog.path], ['Заводчикам', null, 'breeders'], ['Оптовым покупателям', null, 'sales']]],
-    ['Каталог', [['Корм для кошек', kinds.cat.path], ['Корм для собак', kinds.dog.path], ['Корм для котят', segments.kitten.path], ['Корм для щенков', segments.puppy.path], ['Для стерилизованных', segments.sterile.path]]],
+    ['О бренде', [['О бренде и заводе', pages.about.path], ['Блог о питании', pages.blog.path], ['Оптовым покупателям', null, 'sales']]],
+    ['Каталог', [['Корм для кошек', kinds.cat.path], ['Корм для собак', kinds.dog.path], ...segLink('kitten', 'Корм для котят'), ...segLink('puppy', 'Корм для щенков'), ...segLink('sterile', 'Для стерилизованных')]],
   ]
   return (
     <footer className="mt-10 bg-ink pb-24 pt-14 text-white md:pb-10">
@@ -1387,11 +1377,8 @@ function Panels({ nav }) {
             <div className="mb-1 text-[13px] font-bold uppercase tracking-wide text-txt-2">Каталог</div>
             <MenuLink to={kinds.cat.path} onClick={close}>Корм для кошек</MenuLink>
             <MenuLink to={kinds.dog.path} onClick={close}>Корм для собак</MenuLink>
-            <MenuLink to={segments.kitten.path} onClick={close}>Для котят</MenuLink>
-            <MenuLink to={segments.puppy.path} onClick={close}>Для щенков</MenuLink>
-            <MenuLink to={segments.sterile.path} onClick={close}>Для стерилизованных кошек</MenuLink>
-            <MenuLink to={segments.small.path} onClick={close}>Для мелких пород собак</MenuLink>
-            <MenuLink to={segments.urinary.path} onClick={close}>Для кошек при МКБ</MenuLink>
+            {[['kitten', 'Для котят'], ['puppy', 'Для щенков'], ['sterile', 'Для стерилизованных кошек'], ['small', 'Для мелких пород собак'], ['urinary', 'Для кошек при МКБ']]
+              .filter(([id]) => segments[id].count).map(([id, t]) => <MenuLink key={id} to={segments[id].path} onClick={close}>{t}</MenuLink>)}
             <div className="mb-1 mt-3 text-[13px] font-bold uppercase tracking-wide text-txt-2">Информация</div>
             <MenuLink to={pages.delivery.path} onClick={close}>Доставка и оплата</MenuLink>
             <MenuLink to={pages.returns.path} onClick={close}>Возврат и обмен</MenuLink>

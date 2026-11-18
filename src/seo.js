@@ -1,5 +1,5 @@
 // Маршруты и SEO-данные каждой страницы. Используется и при пререндере, и в браузере.
-import { SITE, BASE, products, kinds, segments, pages, posts, faq, contacts, productPath, minPrice, img, declaration, minAll } from './data'
+import { SITE, BASE, products, kinds, segments, pages, posts, faq, contacts, productPath, minPrice, img, declaration, minAll, recipes, lineupAll } from './data'
 
 const abs = (p = '') => `${SITE}/${p}`
 const cut = (t, n) => (t.length <= n ? t : t.slice(0, t.lastIndexOf(' ', n - 1)).replace(/[,.:;—-]+$/, '') + '…')
@@ -117,7 +117,7 @@ export function head(route) {
   switch (route.type) {
     case 'home':
       title = 'Корма Wonderfur для кошек и собак — купить в СПб, доставка бесплатно'
-      desc = `Сухие корма Wonderfur: 14 рецептов для стерилизованных кошек, котят, собак, мелких пород и щенков, Urinary при МКБ. Цены от ${minAll} ₽, бесплатная доставка до пунктов 5Post в СПб.`
+      desc = `Сухие корма Wonderfur: ${recipes(products.length)} ${lineupAll()}. Цены от ${minAll} ₽, бесплатная доставка до пунктов 5Post в СПб.`
       ld = [org, { '@type': 'WebSite', '@id': abs('#site'), url: abs(), name: BRAND, inLanguage: 'ru-RU', publisher: { '@id': abs('#store') } }, listLd(products, 'Корма Wonderfur')]
       break
     case 'kind': {
