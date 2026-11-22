@@ -575,8 +575,12 @@ function Checks() {
 }
 
 function PostCard({ p, H = 'h3' }) {
+  const CardLink = p.dzenUrl ? 'a' : Link
+  const destination = p.dzenUrl
+    ? { href: p.dzenUrl, target: '_blank', rel: 'noopener' }
+    : { to: `blog/${p.slug}/` }
   return (
-    <Link to={`blog/${p.slug}/`} className="group flex min-w-[260px] flex-col rounded-2xl bg-white text-left lg:min-w-0">
+    <CardLink {...destination} className="group flex min-w-[260px] flex-col rounded-2xl bg-white text-left lg:min-w-0">
       <div className={cn('flex h-[200px] items-center justify-center overflow-hidden rounded-2xl', p.tone)}>
         <img src={img(p.img)} {...IMG} loading="lazy" alt="" className="h-[160px] w-auto mix-blend-multiply transition group-hover:scale-105" />
       </div>
@@ -586,7 +590,7 @@ function PostCard({ p, H = 'h3' }) {
         <p className="mt-2 text-sm text-txt-2">{p.text}</p>
         
       </div>
-    </Link>
+    </CardLink>
   )
 }
 

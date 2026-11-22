@@ -424,7 +424,7 @@ export const checks = [
 ]
 
 export const posts = [
-  { slug: 'kak-ponyat-chto-koshke-podhodit-korm', tag: 'кошки', title: 'Как понять, что кошке подходит корм', text: 'Смотрите на шерсть, стул и вес. Оценивать новый корм стоит через 3–4 недели.', min: 4, tone: 'bg-[#f2f2f2]', img: 'cat-sterile-turkey-lamb', rel: ['cat-sterile-turkey-lamb', 'cat-kitten-turkey-chicken'],
+  { slug: 'kak-ponyat-chto-koshke-podhodit-korm', dzenUrl: 'https://dzen.ru/a/awM6UcxOelSnZ3wl', tag: 'кошки', title: 'Как понять, что кошке подходит корм', text: 'Смотрите на шерсть, стул и вес. Оценивать новый корм стоит через 3–4 недели.', min: 4, tone: 'bg-[#f2f2f2]', img: 'cat-sterile-turkey-lamb', rel: ['cat-sterile-turkey-lamb', 'cat-kitten-turkey-chicken'],
     body: ['Новый корм оценивают не за день, а за 3–4 недели. Смотрите на шерсть: она должна оставаться блестящей, без перхоти.', 'Второй признак — стул: оформленный, без резкого запаха. Третий — вес: если кошка набирает или худеет, порцию нужно пересчитать.', 'Если появился зуд, рвота или расстройство — покажите питомца ветеринару.'] },
   { slug: 'skolko-korma-nuzhno-malenkoj-sobake', tag: 'собаки', title: 'Сколько корма нужно маленькой собаке', text: 'Начните с таблицы на упаковке и взвешивайте собаку раз в две недели.', min: 5, tone: 'bg-[#f2f2f2]', img: 'dog-small-turkey-potato', rel: ['dog-small-turkey-potato', 'dog-small-chicken-potato'],
     body: ['Начните с таблицы на упаковке: дозировка указана по весу собаки.', 'Активным собакам может понадобиться чуть больше, спокойным домоседам — чуть меньше.', 'Взвешивайте собаку раз в две недели и меняйте порцию на 10%, если вес уходит.'] },
