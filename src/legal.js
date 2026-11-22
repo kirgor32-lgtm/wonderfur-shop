@@ -2,7 +2,7 @@
 import { contacts, seller } from './data.js'
 
 const fill = (text) => text
-  .replaceAll('@@OP@@', `${seller.name}, ОГРНИП ${seller.ogrn}, ИНН ${seller.inn}, ${seller.address}`)
+  .replaceAll('@@OP@@', `${seller.name}, ОГРНИП ${seller.ogrn}, ИНН ${seller.inn}, г. ${contacts.city}`)
   .replaceAll('@@SITE@@', 'https://136.234.25.25/wonderfur-shop/')
   .replaceAll('@@EMAIL@@', contacts.email)
   .replaceAll('@@PHONE@@', contacts.phone)
