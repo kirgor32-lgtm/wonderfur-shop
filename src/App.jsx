@@ -494,8 +494,9 @@ function ProductCard({ p }) {
         <span className="text-xs text-txt-2">{rub(perKg(v))}/кг</span>
       </div>
       <h3 className="mt-1 text-[14px] leading-snug sm:text-[15px]">
-        <Link to={productPath(p)} className="hover:opacity-60"><span className="font-bold uppercase tracking-wide">{p.line}</span> <span className="text-txt-2">{p.short}</span></Link>
+        <Link to={productPath(p)} className="break-words hover:opacity-60">{p.catalogTitle || <><span className="font-bold uppercase tracking-wide">{p.line}</span> <span className="text-txt-2">{p.short}</span></>}</Link>
       </h3>
+      {p.catalogIntro && <p className="mt-1 line-clamp-2 break-words text-xs leading-snug text-txt-2">{p.catalogIntro}</p>}
       <div className="mt-auto flex gap-1.5 pt-3" role="group" aria-label="Фасовка">
         {p.weights.map((w, i) => (
           <button key={w.w} onClick={() => setVi(i)} aria-pressed={i === vi} className={cn('h-8 min-w-0 flex-1 whitespace-nowrap rounded-full border px-1 text-[13px] sm:flex-none sm:px-3', i === vi ? 'border-ink bg-ink text-white' : 'border-gray-3 hover:border-ink')}>{w.w}</button>
@@ -835,7 +836,17 @@ function ProductPage({ p }) {
   const v = p.weights[vi]
   const gal = (p.images || []).map((f) => BASE + f)
   const [pi, setPi] = useState(0)
+  const thumbs = useRef(null)
+  const photoIndex = pi < gal.length ? pi : 0
   useEffect(() => setPi(0), [p])
+  useEffect(() => {
+    const strip = thumbs.current
+    const active = strip?.children[photoIndex]
+    if (!active) return
+    const item = active.getBoundingClientRect(), viewport = strip.getBoundingClientRect()
+    if (item.left < viewport.left) strip.scrollLeft += item.left - viewport.left - 2
+    if (item.right > viewport.right) strip.scrollLeft += item.right - viewport.right + 2
+  }, [p, photoIndex])
   const related = products.filter((x) => x.kind === p.kind && x.id !== p.id)
   const specs = [
     ['Вкус', p.taste],
@@ -854,16 +865,20 @@ function ProductPage({ p }) {
       <article className="wrap grid gap-8 pb-14 pt-5 md:grid-cols-[1fr_1.05fr] lg:gap-14">
         <div className="min-w-0">
         <div className={cn('relative flex h-[360px] items-center justify-center rounded-lg p-6 md:h-[520px]', p.bg)}>
-          <img src={gal[pi] || img(p.id)} {...IMG} fetchPriority="high" alt={`Упаковка ${p.line} — ${p.short}, ${p.taste}`} className="h-full w-auto object-contain" />
+          <img src={gal[photoIndex] || img(p.id)} {...IMG} fetchPriority="high" alt={`Упаковка ${p.line} — ${p.short}, ${p.taste}`} className="h-full w-auto object-contain" />
           <FavBtn faved={st.fav.includes(p.id)} onClick={() => st.toggleFav(p.id)} className="right-4 top-4 sm:right-4 sm:top-4" />
         </div>
           {gal.length > 1 && (
-            <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1 pt-1" role="group" aria-label="Фото товара">
-              {gal.map((src, i) => (
-                <button key={src} type="button" onClick={() => setPi(i)} aria-label={`Фото ${i + 1} из ${gal.length}`} aria-pressed={i === pi} className={cn('flex size-16 shrink-0 items-center justify-center border bg-white p-1', i === pi ? 'border-ink' : 'border-transparent hover:border-txt-2')}>
-                  <img src={src} alt="" loading="lazy" className="max-h-full w-auto object-contain" />
-                </button>
-              ))}
+            <div className="mt-3 flex items-center gap-1.5" role="group" aria-label="Фото товара">
+              <button type="button" aria-label="Предыдущее фото" onClick={() => setPi((i) => (i + gal.length - 1) % gal.length)} className="grid size-11 shrink-0 place-items-center rounded-full bg-gray-1 hover:bg-gray-2"><ChevronRight className="size-5 rotate-180" aria-hidden="true" /></button>
+              <div ref={thumbs} className="no-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto p-0.5">
+                {gal.map((src, i) => (
+                  <button key={`${i}-${src}`} type="button" onClick={() => setPi(i)} aria-label={`Фото ${i + 1} из ${gal.length}`} aria-pressed={i === photoIndex} className={cn('flex size-16 shrink-0 items-center justify-center rounded-lg p-1 focus-visible:outline focus-visible:-outline-offset-2', i === photoIndex ? 'bg-gray-2' : 'bg-white hover:bg-gray-1')}>
+                    <img src={src} alt="" loading="lazy" className="max-h-full w-auto object-contain mix-blend-multiply" />
+                  </button>
+                ))}
+              </div>
+              <button type="button" aria-label="Следующее фото" onClick={() => setPi((i) => (i + 1) % gal.length)} className="grid size-11 shrink-0 place-items-center rounded-full bg-gray-1 hover:bg-gray-2"><ChevronRight className="size-5" aria-hidden="true" /></button>
             </div>
           )}
         </div>

@@ -289,6 +289,7 @@ const slugify = (t) => String(t).toLowerCase().replace(/[а-яё]/g, (ch) => TR[
     if (c) {
       set(p, 'name', c.title); set(p, 'short', c.short); set(p, 'line', c.line); set(p, 'taste', c.taste); set(p, 'age', c.age)
       set(p, 'ageLabel', c.age_label); set(p, 'slug', c.slug); set(p, 'text', c.text); set(p, 'more', c.more)
+      set(p, 'catalogTitle', c.title); set(p, 'catalogIntro', c.text)
       set(p, 'foodType', c.food_type); set(p, 'shelfLife', c.shelf_life)
       if (c.composition_full || c.composition_top || Object.values(c.analysis || {}).some(Boolean)) {
         const base = p.composition || { top: '', full: '', analysis: {} }
