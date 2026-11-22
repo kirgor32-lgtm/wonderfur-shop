@@ -33,8 +33,8 @@ const inkBtn = 'h-11 rounded-full bg-ink px-5 text-sm font-medium text-white hov
 const ALL = { kind: 'all', age: 'all', q: '' }
 const byId = (id) => products.find((p) => p.id === id)
 const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1)
-const kg = (w) => parseFloat(w.replace(',', '.')) / (w.includes('кг') ? 1 : 1000)
-const perKg = (v) => Math.round(v.price / kg(v.w))
+const kg = (w) => { const m = String(w).trim().match(/^(\d+(?:[,.]\d+)?)\s*(кг|г)$/i); const n = m ? Number(m[1].replace(',', '.')) : 0; return Number.isFinite(n) && n > 0 ? n / (m[2].toLowerCase() === 'кг' ? 1 : 1000) : null }
+const perKg = (v) => { const mass = kg(v.w); return mass === null ? null : Math.round(v.price / mass) }
 const plural = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 10 || h >= 20) ? b : c }
 const THANKS_PATH = 'spasibo/'
 const IMG = { width: 240, height: 528 } // размеры фото упаковок (против сдвига вёрстки)
@@ -491,7 +491,7 @@ function ProductCard({ p }) {
       </div>
       <div className="mt-3 flex flex-wrap items-baseline gap-x-2">
         <span className="text-[17px] font-semibold sm:text-[19px]">{rub(v.price)}</span>
-        <span className="text-xs text-txt-2">{rub(perKg(v))}/кг</span>
+        {perKg(v) !== null && <span className="text-xs text-txt-2">{rub(perKg(v))}/кг</span>}
       </div>
       <h3 className="mt-1 text-[14px] leading-snug sm:text-[15px]">
         <Link to={productPath(p)} className="break-words hover:opacity-60">{p.catalogTitle || <><span className="font-bold uppercase tracking-wide">{p.line}</span> <span className="text-txt-2">{p.short}</span></>}</Link>
@@ -897,7 +897,7 @@ function ProductPage({ p }) {
           </div>
           <div className="mt-6 flex items-baseline gap-3">
             <span className="text-[34px] font-extrabold leading-none">{rub(v.price)}</span>
-            <span className="text-sm text-txt-2">{rub(perKg(v))}/кг</span>
+            {perKg(v) !== null && <span className="text-sm text-txt-2">{rub(perKg(v))}/кг</span>}
           </div>
           <div className="mt-5 max-w-[420px]"><Buy p={p} v={v} qty={st.qtyOf(p.id, v.w)} big /></div>
           <div className="mt-5 flex items-start gap-3 rounded-lg bg-gray-1 p-4 text-sm">
