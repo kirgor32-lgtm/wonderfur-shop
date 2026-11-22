@@ -17,7 +17,7 @@ export const contacts = {
   email: 'wonderfurshop@mail.ru',
   telegram: 'https://t.me/Wonderfurshop_bot', // бот магазина, подключён к CRM
   max: 'https://max.ru/id781718689815_bot',
-  dzen: '',
+  dzen: 'https://dzen.ru/id/6b033454569eed7d4d164dd9',
   hours: 'ежедневно 9:00–21:00',
   city: 'Санкт-Петербург',
   demo: true, // пока true — телефон не попадает в микроразметку
