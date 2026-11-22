@@ -12,7 +12,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
+import { ConsentField } from './ConsentField'
+import { COOKIE_EDITION, CONSENT_EDITION, cookieChoice } from './privacy-choice.js'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
@@ -612,19 +613,6 @@ function BlogStrip() {
 }
 
 /* ---------------- формы ---------------- */
-function Consent({ checked, onChange, err }) {
-  return (
-    <label className="flex items-start gap-2.5 text-xs text-txt-2">
-      <Checkbox checked={checked} onCheckedChange={(v) => onChange(!!v)} className="mt-0.5 data-[state=checked]:border-ink data-[state=checked]:bg-ink" />
-      <span>
-        Даю <Link to={pages.consent.path} className="underline hover:text-ink">согласие на обработку персональных данных</Link> и принимаю{' '}
-        <Link to={pages.privacy.path} className="underline hover:text-ink">политику конфиденциальности</Link>
-        {err && <b className="text-destructive"> — {err}</b>}
-      </span>
-    </label>
-  )
-}
-
 function LeadForm({ topic, compact, onSubmit, cta = 'Отправить', doneText }) {
   const st = useStore()
   const { navigate } = useRoute()
@@ -647,7 +635,7 @@ function LeadForm({ topic, compact, onSubmit, cta = 'Отправить', doneTe
     setTimeout(() => {
       if (onSubmit) onSubmit({ name: f.name.trim(), phone: f.phone })
       else {
-        sendLead({ name: f.name.trim(), phone: f.phone, topic, msg: f.msg.trim() }) // заявка → CRM
+        sendLead({ name: f.name.trim(), phone: f.phone, topic, msg: f.msg.trim(), consent: CONSENT_EDITION }) // заявка → CRM
         try { sessionStorage.setItem(THANKS_KEY, JSON.stringify({ type: 'lead', name: f.name.trim(), text: doneText || '' })) } catch {}
         sending.current = false
         return navigate(THANKS_PATH)
@@ -670,7 +658,7 @@ function LeadForm({ topic, compact, onSubmit, cta = 'Отправить', doneTe
         <Field err={err.phone} label="Телефон"><Input type="tel" autoComplete="tel" placeholder="Телефон" inputMode="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: fmtPhone(e.target.value) })} aria-invalid={!!err.phone} className="h-12 rounded-lg bg-white text-[16px]" /></Field>
       </div>
       {!compact && <Textarea aria-label="Сообщение" placeholder={topic === 'order' ? 'Номер заказа и что случилось' : 'Сообщение (необязательно)'} value={f.msg} onChange={(e) => setF({ ...f, msg: e.target.value })} className="min-h-24 rounded-lg bg-white text-[16px]" />}
-      <Consent checked={f.ok} onChange={(ok) => setF({ ...f, ok })} err={err.ok} />
+      <ConsentField checked={f.ok} onChange={(ok) => setF({ ...f, ok })} error={err.ok && "Отметьте согласие, чтобы отправить обращение"} />
       <Button type="submit" disabled={state === 'send'} className={cn(inkBtn, 'h-12 w-full sm:w-auto sm:px-10')}>
         {state === 'send' ? <Loader2 className="animate-spin" /> : <><Send className="size-4" />{cta}</>}
       </Button>
@@ -1169,35 +1157,24 @@ function Messengers() {
 function CookieBanner() {
   const [show, setShow] = useState(false)
   useEffect(() => {
-    try { if (!localStorage.getItem('wf-cookies')) setShow(true) } catch { setShow(true) }
+    if (!cookieChoice()) setShow(true)
     const reopen = () => setShow(true)
     window.addEventListener('wf-cookies', reopen)
     return () => window.removeEventListener('wf-cookies', reopen)
   }, [])
-  const save = (v) => { try { localStorage.setItem('wf-cookies', JSON.stringify({ v, at: new Date().toISOString() })) } catch { /* пусто */ } setShow(false); window.dispatchEvent(new Event('wf-consent')) }
+  const save = (v) => { try { localStorage.setItem('wf-cookies', JSON.stringify({ v, edition: COOKIE_EDITION, at: new Date().toISOString() })) } catch { /* пусто */ } setShow(false); window.dispatchEvent(new Event('wf-consent')) }
   if (!show) return null
   const policy = <Link to={pages.privacy.path} className="text-violet-dark underline">политике конфиденциальности</Link>
   return (
     <div role="region" aria-label="Cookie и персональные данные"
       className="fixed inset-x-2 bottom-2 z-50 rounded-lg bg-white p-3 shadow-[0_8px_30px_rgba(46,44,56,.22)] sm:inset-x-auto sm:bottom-5 sm:left-5 sm:max-w-[460px] sm:rounded-lg sm:p-5">
-      {/* телефон: одна короткая строка и две маленькие кнопки */}
-      <div className="flex items-center gap-2 sm:hidden">
-        <p className="flex-1 text-[12px] leading-snug text-txt-2">Мы используем cookie и обрабатываем персональные данные. Подробнее — в {policy}.</p>
-        <button onClick={() => save('all')} className="h-10 shrink-0 rounded-lg bg-ink px-5 text-[14px] font-semibold text-white">Ок</button>
+      <div className="flex gap-2 sm:gap-3">
+        <Cookie className="mt-0.5 size-5 shrink-0 text-violet-dark" aria-hidden />
+        <p className="text-xs leading-snug text-txt-2 sm:text-sm">Необходимые cookie помогают сайту работать. Аналитика включается только с вашего разрешения. Подробнее — в {policy}.</p>
       </div>
-      {/* компьютер и планшет */}
-      <div className="hidden sm:block">
-        <div className="flex gap-3">
-          <Cookie className="mt-0.5 size-6 shrink-0 text-violet-dark" aria-hidden />
-          <div>
-            <div className="font-bold">Мы используем cookie</div>
-            <p className="mt-1 text-sm text-txt-2">Используем cookie и обрабатываем персональные данные, чтобы работали корзина и личный кабинет. Подробнее — в {policy}.</p>
-          </div>
-        </div>
-        <div className="mt-3 flex gap-2">
-          <Button onClick={() => save('all')} className={cn(inkBtn, 'flex-1')}>Принять</Button>
-          <Button onClick={() => save('necessary')} variant="ghost" className="h-11 flex-1 rounded-lg bg-gray-1 text-sm font-semibold hover:bg-gray-2">Только необходимые</Button>
-        </div>
+      <div className="mt-2 grid grid-cols-2 gap-2 sm:mt-3">
+        <Button onClick={() => save('necessary')} className="h-auto min-h-10 whitespace-normal rounded-lg bg-gray-1 px-1.5 py-1.5 text-center text-[13px] leading-tight text-ink hover:bg-gray-2">Только необходимые</Button>
+        <Button onClick={() => save('all')} className="h-auto min-h-10 whitespace-normal rounded-lg bg-ink px-1.5 py-1.5 text-center text-[13px] leading-tight text-white hover:bg-ink-2">Разрешить аналитику</Button>
       </div>
     </div>
   )

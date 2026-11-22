@@ -131,11 +131,11 @@ export const phoneFor = phoneOf // номер аккаунта по номеру
 
 /* ---- шаг 1: есть ли такой покупатель ---- */
 // { exists, password } — зарегистрирован ли номер/почта и задан ли пароль
-export async function lookup(login) {
+export async function lookup(login, consent) {
   if (await authLive()) {
     const em = isEmail(login) ? idOf(login).slice(2) : ''
     try {
-      const r = await post('lookup', em ? { email: em } : { phone: digits(login) })
+      const r = await post('lookup', { ...(em ? { email: em } : { phone: digits(login) }), consent })
       if (r.ok && em && !r.body.email) return { error: 'Вход по почте пока не работает — войдите по номеру телефона' }
       return r.ok ? { exists: !!r.body.exists, password: !!r.body.password } : { error: r.body.error || 'Не получилось проверить номер' }
     } catch { live = false }

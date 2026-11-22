@@ -2,6 +2,7 @@
 // Пока api пустой — ничего не отправляется, сайт работает как раньше (демо).
 // Когда CRM будет на сервере: впишите её адрес и ключ сайта из «CRM → Настройки → Марки и сайты».
 import { contactTopics } from './data.js'
+import { cookieChoice } from './privacy-choice.js'
 
 export const crmConfig = {
   api: import.meta.env.VITE_CRM_API || '', // например 'https://crm.wonderfur-spb.ru'
@@ -17,7 +18,7 @@ function load() {
   if (!ready) {
     ready = new Promise((resolve) => {
       const s = document.createElement('script')
-      s.src = crmConfig.api.replace(/\/$/, '') + '/tracker.js'
+      s.src = crmConfig.api.replace(/\/$/, '') + '/tracker.js?privacy=2'
       s.dataset.key = crmConfig.key
       s.dataset.autotrack = '0' // аналитика — только после согласия в баннере cookie
       s.async = true
@@ -45,13 +46,17 @@ async function sendOrQueue(kind, payload) {
 }
 
 // Согласие на аналитические cookie: баннер сохраняет { v: 'all' | 'necessary' } в wf-cookies
-const analyticsAllowed = () => { try { return JSON.parse(localStorage.getItem('wf-cookies'))?.v === 'all' } catch { return false } }
+const analyticsAllowed = () => cookieChoice() === 'all'
 
 export function initCrm() {
   if (!crmEnabled) return
-  const start = () => { if (analyticsAllowed()) load().then((crm) => crm?.startTracking()) }
-  window.addEventListener('wf-consent', start)
-  start()
+  const syncTracking = () => {
+    if (analyticsAllowed()) load().then((crm) => { if (analyticsAllowed()) crm?.startTracking() })
+    else window.crm?.stopTracking?.()
+  }
+  window.addEventListener('wf-consent', syncTracking)
+  window.addEventListener('storage', (event) => { if (event.key === 'wf-cookies' || event.key === null) syncTracking() })
+  syncTracking()
   if (!readPending().length) return
   load().then(async (crm) => {
     if (!crm) return
@@ -62,7 +67,7 @@ export function initCrm() {
   })
 }
 
-export const track = (type, data) => { if (crmEnabled && analyticsAllowed()) load().then((crm) => crm?.track(type, data)) }
+export const track = (type, data) => { if (crmEnabled && analyticsAllowed()) load().then((crm) => { if (analyticsAllowed()) crm?.track(type, data) }) }
 
 // Проверка промокода в CRM. null — CRM не подключена или недоступна (тогда сайт проверяет сам)
 export async function checkPromo(code, phone = '') {
@@ -99,7 +104,7 @@ export function sendOrder(o) {
 export function sendLead(l) {
   if (!crmEnabled) return
   const topic = contactTopics.find((t) => t.id === l.topic)?.label || l.topic || '' // в CRM — «Подобрать корм», а не «pick»
-  sendOrQueue('lead', { name: l.name, phone: l.phone, topic, msg: l.msg || '' })
+  sendOrQueue('lead', { name: l.name, phone: l.phone, topic, msg: l.msg || '', consent: l.consent })
 }
 
 // Статус заказа для «Мои заказы» в личном кабинете — подтягивается из CRM,

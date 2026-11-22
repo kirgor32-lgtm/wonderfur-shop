@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { useStore, fmtPhone } from './store'
-import { Link } from './router'
-import { pages } from './data'
+import { ConsentField } from './ConsentField'
+import { CONSENT_EDITION } from './privacy-choice.js'
 import {
   sendCode, checkCode, callStatus, lookup, loginPassword, setPassword, saveAccount, findAccount, linkEmail, phoneFor,
   linkedChannels, channelNames, maskLogin, isEmail, authLive, authLiveNow, authConfig, isLinked, botLink,
@@ -185,6 +185,7 @@ export default function AuthFlow({ note }) {
   const st = useStore()
   const [mode, setMode] = useState('phone') // phone | email
   const [f, setF] = useState({ phone: '', email: '', code: '', pass: '', trap: '', name: '', surname: '', birth: '', newPass: '', ownPhone: '' })
+  const [consented, setConsented] = useState(false)
   const [step, setStep] = useState('start') // start | login | register | profile | reset
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
@@ -203,7 +204,7 @@ export default function AuthFlow({ note }) {
   const today = new Date().toISOString().slice(0, 10)
   const login = mode === 'phone' ? f.phone : f.email.trim()
   const set = (k) => (v) => { setF((x) => ({ ...x, [k]: v })); setErr('') }
-  const go = (s) => { setStep(s); setErr(''); setHelp(false) }
+  const go = (s) => { setStep(s); setErr(''); setHelp(false); if (s === 'start') setConsented(false) }
   const enter = (phone, acc) => st.setUser({ ...acc, phone: fmtPhone(String(phone)) })
 
   // kind: 'code' — код для регистрации, 'reset' — новый пароль; via: 'call' — попросили звонок вместо мессенджера
@@ -243,10 +244,11 @@ export default function AuthFlow({ note }) {
       return enter(phone, acc || {})
     }
     if (step === 'start') {
+      if (!consented) return setErr('Отметьте согласие, чтобы продолжить')
       if (mode === 'phone' && f.phone.replace(/\D/g, '').length !== 11) return setErr('Введите номер телефона полностью')
       if (mode === 'email' && !isEmail(f.email)) return setErr('Проверьте адрес почты')
       setBusy(true)
-      const r = await lookup(login)
+      const r = await lookup(login, CONSENT_EDITION)
       setBusy(false)
       if (r.error) return setErr(r.error)
       if (r.exists && r.password) return go('login')
@@ -285,7 +287,7 @@ export default function AuthFlow({ note }) {
     }
     // profile
     if (f.name.trim().length < 2) return setErr('Введите имя')
-    if (!f.birth || f.birth > today || f.birth < '1900-01-01') return setErr('Укажите дату рождения')
+    if (f.birth && (f.birth > today || f.birth < '1900-01-01')) return setErr('Проверьте дату рождения')
     if (mode === 'email' && f.ownPhone.replace(/\D/g, '').length !== 11) return setErr('Введите номер телефона — на него придёт смс о заказе')
     if (f.newPass.length < authConfig.minPassword) return setErr(`Пароль — не короче ${authConfig.minPassword} символов`)
     const phone = mode === 'phone' ? f.phone : f.ownPhone
@@ -353,13 +355,14 @@ export default function AuthFlow({ note }) {
           {note && <p className="text-sm text-txt-2">{note}</p>}
           <div role="tablist" aria-label="Способ входа" className={cn(R, 'grid grid-cols-2 gap-1 bg-gray-2 p-1')}>
             {[['phone', 'По номеру телефона'], ['email', 'Через эл. почту']].map(([m, l]) => (
-              <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => { setMode(m); setErr('') }}
+              <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => { setMode(m); setErr(''); setConsented(false) }}
                 className={cn(R, 'min-h-10 px-2 py-1.5 text-[13px] font-semibold leading-tight transition', mode === m ? 'bg-white text-ink shadow-sm' : 'text-txt-2 hover:text-ink')}>{l}</button>
             ))}
           </div>
           {mode === 'phone'
             ? <Input key="phone" aria-label="Номер телефона" type="tel" autoComplete="tel" inputMode="tel" placeholder="Номер телефона" value={f.phone} onChange={(e) => set('phone')(fmtPhone(e.target.value))} className={inp} />
             : <Input key="email" aria-label="Электронная почта" type="email" autoComplete="email" inputMode="email" placeholder="Электронная почта" maxLength={120} value={f.email} onChange={(e) => set('email')(e.target.value)} className={inp} />}
+          <ConsentField checked={consented} onChange={(value) => { setConsented(value); setErr('') }} error={err === 'Отметьте согласие, чтобы продолжить' && err} />
           {/* поле-ловушка для ботов: людям не видно */}
           <input type="text" name="company" tabIndex={-1} autoComplete="off" aria-hidden="true" value={f.trap} onChange={(e) => set('trap')(e.target.value)} className="absolute -left-[9999px] h-px w-px opacity-0" />
           {!live && mode === 'phone' && (
@@ -391,22 +394,14 @@ export default function AuthFlow({ note }) {
       )}
 
       {chooser}
-      {step === 'register' && byCall && callBox(
-        <p className="text-xs text-txt-2">
-          Позвонив, вы даёте <Link to={pages.consent.path} className="underline hover:text-ink">согласие на обработку персональных данных</Link> и принимаете{' '}
-          <Link to={pages.privacy.path} className="underline hover:text-ink">политику конфиденциальности</Link>
-        </p>,
-      )}
+      {step === 'register' && byCall && callBox(null)}
 
       {step === 'register' && !byCall && !choose && (
         <>
           <p className="text-[15px]">Мы отправили код {where}</p>
           <Input aria-label="Код из сообщения" autoFocus placeholder="Код" inputMode="numeric" autoComplete="one-time-code" maxLength={4} value={f.code} onChange={(e) => set('code')(e.target.value.replace(/\D/g, ''))} className={cn(inp, 'text-center text-xl tracking-[.5em]')} />
           {sentCopy}
-          <p className="text-xs text-txt-2">
-            Нажимая «Зарегистрироваться», вы даёте <Link to={pages.consent.path} className="underline hover:text-ink">согласие на обработку персональных данных</Link> и принимаете{' '}
-            <Link to={pages.privacy.path} className="underline hover:text-ink">политику конфиденциальности</Link>
-          </p>
+
         </>
       )}
 
@@ -443,7 +438,7 @@ export default function AuthFlow({ note }) {
           <Input aria-label="Имя" autoFocus autoComplete="given-name" placeholder="Имя" maxLength={60} value={f.name} onChange={(e) => set('name')(e.target.value)} className={inp} />
           <Input aria-label="Фамилия (необязательно)" autoComplete="family-name" placeholder="Фамилия (необязательно)" maxLength={60} value={f.surname} onChange={(e) => set('surname')(e.target.value)} className={inp} />
           <label className="block">
-            <span className="mb-1 block text-xs text-txt-2">Дата рождения</span>
+            <span className="mb-1 block text-xs text-txt-2">Дата рождения (необязательно)</span>
             <Input type="date" autoComplete="bday" min="1900-01-01" max={today} value={f.birth} onChange={(e) => set('birth')(e.target.value)} className={inp} />
           </label>
           {mode === 'email' && (
@@ -460,7 +455,7 @@ export default function AuthFlow({ note }) {
         </>
       )}
 
-      {err && <p role="alert" className="text-sm text-destructive">{err}</p>}
+      {err && err !== 'Отметьте согласие, чтобы продолжить' && <p role="alert" className="text-sm text-destructive">{err}</p>}
       {!byCall && !choose && (
         <Button type="submit" disabled={busy} className={cn(inkBtn, 'h-12 w-full gap-2 text-base')}>
           {busy ? <Loader2 className="size-5 animate-spin" /> : <>{buttons[step]}<ArrowRight className="size-5" /></>}
