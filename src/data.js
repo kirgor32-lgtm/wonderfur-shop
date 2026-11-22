@@ -16,7 +16,7 @@ export const contacts = {
   phoneHref: 'tel:+79500267838',
   email: 'wonderfurshop@mail.ru',
   telegram: 'https://t.me/Wonderfurshop_bot', // бот магазина, подключён к CRM
-  max: 'https://max.ru/', // ЗАГЛУШКА
+  max: 'https://max.ru/id781718689815_bot',
   dzen: '',
   hours: 'ежедневно 9:00–21:00',
   city: 'Санкт-Петербург',
