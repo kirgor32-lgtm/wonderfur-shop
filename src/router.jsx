@@ -15,6 +15,7 @@ export function RouterProvider({ initialPath, children }) {
     pendingHash.current = opts.hash || null
     setRoute(r)
     applyHead(head(r))
+    window.dispatchEvent(new Event('wf-route'))
   }, [])
   // Скроллим ПОСЛЕ того, как новая страница отрисовалась — иначе браузер
   // (scroll anchoring) может вернуть скролл вниз, если клик был в подвале
@@ -27,7 +28,7 @@ export function RouterProvider({ initialPath, children }) {
     }
   }, [route])
   useEffect(() => {
-    const onPop = () => { pendingHash.current = null; const r = match(stripBase(location.pathname)); setRoute(r); applyHead(head(r)) }
+    const onPop = () => { pendingHash.current = null; const r = match(stripBase(location.pathname)); setRoute(r); applyHead(head(r)); window.dispatchEvent(new Event('wf-route')) }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
