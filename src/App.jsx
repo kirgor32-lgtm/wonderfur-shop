@@ -1175,11 +1175,11 @@ function CookieBanner() {
       className="fixed inset-x-2 bottom-2 z-50 rounded-lg bg-white p-3 shadow-[0_8px_30px_rgba(46,44,56,.22)] sm:inset-x-auto sm:bottom-5 sm:left-5 sm:max-w-[460px] sm:rounded-lg sm:p-5">
       <div className="flex gap-2 sm:gap-3">
         <Cookie className="mt-0.5 size-5 shrink-0 text-violet-dark" aria-hidden />
-        <p className="text-xs leading-snug text-txt-2 sm:text-sm">Необходимые cookie помогают сайту работать. Аналитика включается только с вашего разрешения. Подробнее — в {policy}.</p>
+        <p className="text-xs leading-snug text-txt-2 sm:text-sm">Мы используем cookie, чтобы сайт работал удобно. Аналитику включим только с вашего согласия. Подробнее — в {policy}.</p>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-2 sm:mt-3">
-        <Button onClick={() => save('necessary')} className="h-auto min-h-10 whitespace-normal rounded-lg bg-gray-1 px-1.5 py-1.5 text-center text-[13px] leading-tight text-ink hover:bg-gray-2">Только необходимые</Button>
-        <Button onClick={() => save('all')} className="h-auto min-h-10 whitespace-normal rounded-lg bg-ink px-1.5 py-1.5 text-center text-[13px] leading-tight text-white hover:bg-ink-2">Разрешить аналитику</Button>
+        <Button onClick={() => save('necessary')} className="h-auto min-h-10 whitespace-normal rounded-lg border border-ink bg-white px-1.5 py-1.5 text-center text-[13px] leading-tight text-ink hover:bg-gray-1">Только обязательные</Button>
+        <Button onClick={() => save('all')} className="h-auto min-h-10 whitespace-normal rounded-lg bg-ink px-1.5 py-1.5 text-center text-[13px] leading-tight text-white hover:bg-ink-2">Принять все</Button>
       </div>
     </div>
   )
