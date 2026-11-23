@@ -1,9 +1,9 @@
 // Тексты из docs/legal/1–3. Не публиковать отдельно от согласованного поведения форм.
-import { contacts, seller } from './data.js'
+import { contacts, seller, SITE } from './data.js'
 
 const fill = (text) => text
   .replaceAll('@@OP@@', `${seller.name}, ОГРНИП ${seller.ogrn}, ИНН ${seller.inn}, г. ${contacts.city}`)
-  .replaceAll('@@SITE@@', 'https://136.234.25.25/wonderfur-shop/')
+  .replaceAll('@@SITE@@', `${SITE}/`)
   .replaceAll('@@EMAIL@@', contacts.email)
   .replaceAll('@@PHONE@@', contacts.phone)
 

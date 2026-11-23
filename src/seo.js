@@ -1,5 +1,5 @@
 // Маршруты и SEO-данные каждой страницы. Используется и при пререндере, и в браузере.
-import { SITE, BASE, products, kinds, segments, pages, posts, faq, contacts, productPath, minPrice, img, declaration, minAll, recipes, lineupAll } from './data'
+import { SITE, BASE, products, kinds, segments, pages, posts, faq, contacts, productPath, minPrice, img, declaration, minAll, recipes, lineupAll, seller } from './data'
 
 const abs = (p = '') => `${SITE}/${p}`
 const cut = (t, n) => (t.length <= n ? t : t.slice(0, t.lastIndexOf(' ', n - 1)).replace(/[,.:;—-]+$/, '') + '…')
@@ -16,6 +16,9 @@ const org = {
   description: 'Интернет-магазин сухих кормов Wonderfur для кошек и собак с бесплатной доставкой до пунктов выдачи 5Post в Санкт-Петербурге.',
   areaServed: { '@type': 'City', name: 'Санкт-Петербург' },
   currenciesAccepted: 'RUB',
+  legalName: seller.name,
+  taxID: seller.inn,
+  identifier: { '@type': 'PropertyValue', propertyID: 'ОГРНИП', value: seller.ogrn },
   sameAs: [contacts.telegram, contacts.max],
   ...(contacts.demo ? {} : { telephone: contacts.phone, email: contacts.email }),
 }

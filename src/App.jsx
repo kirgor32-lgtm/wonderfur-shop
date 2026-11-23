@@ -411,7 +411,7 @@ function Catalog({ filter, setFilter, title, fixedKind, as }) {
             </div>
           )}
         </div>
-        <p className="mt-6 text-xs text-txt-2">Цены указаны в рублях с НДС. Доставка до пунктов выдачи 5Post в Санкт-Петербурге — бесплатно.</p>
+        <p className="mt-6 text-xs text-txt-2">Цены указаны в рублях, НДС не облагается. Доставка до пунктов выдачи 5Post в Санкт-Петербурге — бесплатно.</p>
       </div>
     </section>
   )
@@ -480,7 +480,7 @@ function ProductCard({ p }) {
           <img src={img(p.id)} {...IMG} loading="lazy" alt={`${p.line} — ${p.short}, ${p.taste}`} className="h-full w-full object-contain mix-blend-multiply transition duration-300 group-hover:scale-105" />
         </Link>
         <div className="absolute left-2 top-2 flex flex-col items-start gap-1 sm:left-3 sm:top-3">
-          {p.code && <span className="rounded-md bg-white px-2 py-1 text-[11px] font-semibold">рецепт {p.code}</span>}
+
         </div>
         <FavBtn faved={faved} onClick={() => st.toggleFav(p.id)} />
         {p.composition && (
@@ -804,7 +804,7 @@ function SegmentPage({ id }) {
         <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
           {list.map((p) => <ProductCard key={p.id} p={p} />)}
         </div>
-        <p className="mt-6 text-xs text-txt-2">Цены указаны в рублях с НДС. Доставка до пунктов выдачи 5Post в Санкт-Петербурге — бесплатно.</p>
+        <p className="mt-6 text-xs text-txt-2">Цены указаны в рублях, НДС не облагается. Доставка до пунктов выдачи 5Post в Санкт-Петербурге — бесплатно.</p>
       </section>
       <section className="wrap pb-14">
         <h2 className="text-2xl font-extrabold">Ещё корма</h2>
@@ -845,7 +845,7 @@ function ProductPage({ p }) {
     ['Для кого', p.ageLabel],
     ['Тип корма', p.foodType || 'сухой полнорационный'],
     ['Фасовки', p.weights.map((w) => w.w).join(', ')],
-    ['Штрихкод', v.gtin],
+
     ['Срок годности', p.shelfLife || '18 месяцев'],
     ['Производитель', manufacturer],
     ...(declaration ? [['Декларация', declaration]] : []),
@@ -989,7 +989,8 @@ function TextPage({ id, topic, setTopic }) {
             </div>
             <div className="rounded-lg bg-gray-1 p-6">
               <div className="text-sm text-txt-2">Продавец</div>
-              <div className="mt-1 text-[15px]">{seller.name}<br />ОГРН {seller.ogrn}, ИНН {seller.inn}<br />{seller.address}</div>
+              <div className="mt-1 text-[15px]">{seller.name}<br />ОГРНИП {seller.ogrn}<br />ИНН {seller.inn}<br />{seller.address}</div>
+              <div className="mt-1 text-sm text-txt-2">{seller.reg}</div>
               <div className="mt-2 text-sm"><a href={`mailto:${contacts.email}`} className="underline">{contacts.email}</a></div>
             </div>
           </div>
@@ -1113,9 +1114,9 @@ function Footer({ nav }) {
         </div>
       </div>
       <div className="wrap mt-10 space-y-2 border-t border-white/10 pt-6 text-xs text-white/55">
-        <p>Продавец: {seller.name}, ОГРН {seller.ogrn}, ИНН {seller.inn}, {seller.address}. Производитель кормов — {manufacturer}.</p>
+        <p>Продавец: {seller.name}, ОГРНИП {seller.ogrn}, ИНН {seller.inn}, {seller.address}. Производитель кормов — {manufacturer}.</p>
         <p>
-          Цены указаны в рублях с НДС. Сайт носит информационный характер и не является публичной офертой.{' '}
+          Цены указаны в рублях, НДС не облагается (продавец применяет УСН). Сайт носит информационный характер и не является публичной офертой.{' '}
           <Link to={pages.privacy.path} className="underline hover:text-white">Политика конфиденциальности</Link> ·{' '}
           <Link to={pages.consent.path} className="underline hover:text-white">Согласие на обработку данных</Link> ·{' '}
           <Link to={pages.terms.path} className="underline hover:text-white">Пользовательское соглашение</Link>

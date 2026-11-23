@@ -4,7 +4,8 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const dist = path.resolve('dist')
-const SITE = 'https://kirgor32-lgtm.github.io/wonderfur-shop'
+const SITE = process.env.VITE_SITE_URL || 'https://kirgor32-lgtm.github.io/wonderfur-shop'
+const BASE = process.env.VITE_BASE || '/wonderfur-shop/'
 const tpl = fs.readFileSync(path.join(dist, 'index.html'), 'utf8')
 const { render, routes, products } = await import(pathToFileURL(path.resolve('dist-ssr/entry-server.js')).href)
 
@@ -31,11 +32,11 @@ fs.writeFileSync(path.join(dist, 'sitemap.xml'),
 fs.writeFileSync(path.join(dist, 'robots.txt'),
   `User-agent: *\nAllow: /\nClean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&yclid&gclid\n\nSitemap: ${SITE}/sitemap.xml\n`)
 fs.writeFileSync(path.join(dist, 'manifest.webmanifest'), JSON.stringify({
-  name: 'Wonderfur — корма для кошек и собак', short_name: 'Wonderfur', lang: 'ru', start_url: '/wonderfur-shop/', scope: '/wonderfur-shop/',
+  name: 'Wonderfur — корма для кошек и собак', short_name: 'Wonderfur', lang: 'ru', start_url: BASE, scope: BASE,
   display: 'standalone', background_color: '#ffffff', theme_color: "#ffffff",
   icons: [
-    { src: '/wonderfur-shop/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-    { src: '/wonderfur-shop/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+    { src: `${BASE}icons/icon-192.png`, sizes: '192x192', type: 'image/png' },
+    { src: `${BASE}icons/icon-512.png`, sizes: '512x512', type: 'image/png' },
   ],
 }, null, 2))
 fs.writeFileSync(path.join(dist, '.nojekyll'), '')
