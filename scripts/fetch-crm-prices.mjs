@@ -3,6 +3,7 @@
 // Если CRM недоступна — тихо оставляем прошлый src/prices.generated.json (сборка не падает).
 import fs from 'node:fs'
 import path from 'node:path'
+import { markCatalogSynced } from '../src/crm-catalog.js'
 
 const CRM_URL = process.env.CRM_CATALOG_URL || 'http://127.0.0.1:4400/api/public/catalog'
 const CRM_KEY = process.env.CRM_SITE_KEY || '' // ключ сайта марки в CRM, задаётся через env (.env.server)
@@ -42,7 +43,7 @@ try {
       ...(images.length ? { images } : {}),
     }
   }
-  fs.writeFileSync(OUT, JSON.stringify(out, null, 1))
+  fs.writeFileSync(OUT, JSON.stringify(markCatalogSynced(out), null, 1))
   console.log(`Каталог из CRM обновлён: ${Object.keys(out).length} товаров, новых фото ${got} → ${OUT}`)
 } catch (e) {
   console.warn(`⚠️  Не удалось получить каталог из CRM (${e.message}). Использую прошлые значения из ${fs.existsSync(OUT) ? OUT : 'src/data.js (без изменений)'}.`)

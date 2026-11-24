@@ -9,6 +9,7 @@ export const SITE = import.meta.env.VITE_SITE_URL || 'https://kirgor32-lgtm.gith
 const photos = {}
 export const img = (name) => photos[name] || `${BASE}img/p/${name}.webp`
 import generatedPrices from './prices.generated.json'
+import { catalogEntries, catalogWasSynced } from './crm-catalog.js'
 
 // ⚠️ ЗАГЛУШКИ — заменить перед запуском (поиск: «ЗАГЛУШКА»)
 export const contacts = {
@@ -274,9 +275,9 @@ const slugify = (t) => String(t).toLowerCase().replace(/[а-яё]/g, (ch) => TR[
 // в CRM у него есть категория (кошки/собаки), название и хотя бы одна фасовка. «Скрыть с сайта» убирает товар.
 {
   const set = (p, key, v) => { if (v !== undefined && v !== null && String(v).trim() !== '') p[key] = v }
-  const fromCrm = Object.keys(generatedPrices).length > 0 // пустой файл = CRM ещё ни разу не ответила, оставляем список выше
+  const fromCrm = catalogWasSynced(generatedPrices) // метка отличает успешный пустой каталог от недоступной CRM
   if (fromCrm) for (let i = products.length; i--;) if (!generatedPrices[products[i].id]) products.splice(i, 1)
-  for (const [id, g] of Object.entries(generatedPrices)) {
+  for (const [id, g] of catalogEntries(generatedPrices)) {
     let p = products.find((x) => x.id === id)
     const c = g.card
     if (!p) {

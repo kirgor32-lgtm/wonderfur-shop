@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "node scripts/fetch-crm-prices.mjs && vite build && vite build --ssr src/entry-server.jsx --outDir dist-ssr && node scripts/prerender.mjs",
+    "test": "node scripts/catalog-empty.test.mjs && node scripts/weight.test.mjs",
     "lint": "oxlint",
     "preview": "vite preview"
   },
