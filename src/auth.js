@@ -16,6 +16,7 @@ import { crmConfig, crmEnabled } from './crm'
 /* ---- связь с CRM: если она доступна, коды шлёт она (бот Telegram/Max) или выдаёт номер для звонка ---- */
 const AUTH = crmEnabled ? crmConfig.api.replace(/\/$/, '') + '/api/public/auth/' : ''
 let live = null // null — ещё не проверяли; false — CRM недоступна, работает демо
+const unavailable = () => ({ error: 'Сервис входа временно недоступен. Попробуйте позже.' })
 async function post(path, body) {
   const r = await fetch(AUTH + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: crmConfig.key, ...body }) })
   return { ok: r.ok, body: await r.json().catch(() => ({})) }
@@ -132,14 +133,16 @@ export const phoneFor = phoneOf // номер аккаунта по номеру
 /* ---- шаг 1: есть ли такой покупатель ---- */
 // { exists, password } — зарегистрирован ли номер/почта и задан ли пароль
 export async function lookup(login, consent) {
-  if (await authLive()) {
+  const server = await authLive()
+  if (server) {
     const em = isEmail(login) ? idOf(login).slice(2) : ''
     try {
       const r = await post('lookup', { ...(em ? { email: em } : { phone: digits(login) }), consent })
       if (r.ok && em && !r.body.email) return { error: 'Вход по почте пока не работает — войдите по номеру телефона' }
       return r.ok ? { exists: !!r.body.exists, password: !!r.body.password } : { error: r.body.error || 'Не получилось проверить номер' }
-    } catch { live = false }
+    } catch { live = false; return unavailable() }
   }
+  if (crmEnabled) return unavailable()
   const phone = phoneOf(login)
   const acc = phone && read('wf-accounts', {})[phone]
   return { exists: !!acc, password: !!(acc && read('wf-pass', {})[phone]) }
@@ -154,14 +157,16 @@ export async function sendCode(login, { trap = '', startedAt = 0, via = '', demo
   if (trap) return { error: 'Не удалось отправить код. Попробуйте ещё раз.' }
   if (Date.now() - startedAt < authConfig.minFillMs) return { error: 'Слишком быстро. Проверьте данные и нажмите ещё раз.' }
   const email = isEmail(login)
-  if (await authLive()) {
+  const server = await authLive()
+  if (server) {
     // лимиты и выбор канала — на стороне CRM
     try {
       const captcha = await captchaToken()
       const r = await post('send-code', email ? { email: idOf(login).slice(2), captcha, kind } : { phone: digits(login), via, captcha, kind })
       return r.ok ? r.body : { error: r.body.error || 'Не удалось отправить код', resendIn: r.body.resendIn }
-    } catch { live = false } // CRM пропала — дальше демо
+    } catch { live = false; return unavailable() }
   }
+  if (crmEnabled) return unavailable()
   const { all, l } = limits(login)
   const now = Date.now()
   if (l.lockUntil > now) return { error: `Слишком много попыток. Попробуйте через ${Math.ceil((l.lockUntil - now) / 60000)} мин.` }
@@ -197,8 +202,9 @@ export async function callStatus(login, callId, { move = false, demo = false } =
       write('wf-session', { token: r.body.token, phone: digits(login) })
       lastCheck = { phone: digits(login), account: r.body.account }
       return { ok: true, confirmed: true }
-    } catch { return { confirmed: false } } // нет связи — спросим ещё раз
+    } catch { return unavailable() }
   }
+  if (crmEnabled) return unavailable()
   const d = (() => { try { return JSON.parse(sessionStorage.getItem('wf-demo-call')) } catch { return null } })()
   if (!d || d.id !== idOf(login)) return { error: 'Запросите номер для звонка ещё раз' }
   if (d.until < Date.now()) return { error: 'Время на звонок вышло — запросите номер ещё раз' }
@@ -222,6 +228,7 @@ export async function checkCode(login, code, { move = false } = {}) {
       return { ok: true, phone: ph, account: r.body.account }
     } catch { return { error: 'Нет связи с сервером. Попробуйте ещё раз.' } }
   }
+  if (crmEnabled) return unavailable()
   const { all, l } = limits(login)
   if (l.lockUntil > Date.now()) return { error: 'Вход временно заблокирован. Попробуйте позже.' }
   const demo = (() => { try { return JSON.parse(sessionStorage.getItem('wf-demo-code')) } catch { return null } })()
@@ -243,6 +250,7 @@ export async function loginPassword(login, pass) {
       return { ok: true, phone: ph, account: r.body.account }
     } catch { return { error: 'Нет связи с сервером. Попробуйте ещё раз.' } }
   }
+  if (crmEnabled) return unavailable()
   const { all, l } = limits(login)
   if (l.lockUntil > Date.now()) return { error: `Слишком много попыток. Попробуйте через ${Math.ceil((l.lockUntil - Date.now()) / 60000)} мин.` }
   const phone = phoneOf(login)
@@ -258,6 +266,7 @@ export async function setPassword(phone, pass) {
     const r = await post('password', { token: getSession()?.token, password: pass }).catch(() => null)
     return r?.ok ? { ok: true } : { error: r?.body?.error || 'Не получилось сохранить пароль' }
   }
+  if (crmEnabled) return unavailable()
   const all = read('wf-pass', {})
   all[digits(phone)] = await makeHash(pass)
   write('wf-pass', all)
@@ -277,6 +286,7 @@ export const emailOf = (phone) => Object.entries(emailLinks()).find(([, p]) => p
 // Есть ли аккаунт на этот номер (после проверки кода). Демо — хранится в браузере.
 export async function findAccount(phone) {
   if (authLiveNow()) return lastCheck?.phone === digits(phone) ? lastCheck.account : null // занятость нового номера проверит CRM (move)
+  if (crmEnabled) return null
   return read('wf-accounts', {})[digits(phone)] || null
 }
 export async function saveAccount(phone, acc) {
@@ -288,6 +298,7 @@ export async function saveAccount(phone, acc) {
     if (r.body.phone) { write('wf-session', { token: getSession()?.token, phone: r.body.phone }); lastCheck = { phone: r.body.phone, account: r.body.account, email: r.body.account?.email || '' } }
     return { ok: true, account: r.body.account }
   }
+  if (crmEnabled) return unavailable()
   const all = read('wf-accounts', {})
   const pass = read('wf-pass', {})
   if (acc) all[digits(phone)] = acc
@@ -297,7 +308,7 @@ export async function saveAccount(phone, acc) {
 }
 // Смена номера в демо: пароль и почта переезжают на новый номер
 export function movePassword(from, to) {
-  if (authLiveNow()) return
+  if (crmEnabled) return
   const pass = read('wf-pass', {})
   if (pass[digits(from)]) { pass[digits(to)] = pass[digits(from)]; delete pass[digits(from)]; write('wf-pass', pass) }
   const e = emailOf(from)

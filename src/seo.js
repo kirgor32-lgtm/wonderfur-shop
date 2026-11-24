@@ -183,7 +183,7 @@ export function head(route) {
       robots = 'noindex, follow'
   }
   const canonical = route.type === '404' ? null : abs(route.path)
-  return { title, desc, canonical, image, type, robots, ld: ld.length ? { '@context': 'https://schema.org', '@graph': ld } : null }
+  return { title, desc, canonical, image, type, robots, hero: route.type === 'home', ld: ld.length ? { '@context': 'https://schema.org', '@graph': ld } : null }
 }
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
@@ -195,6 +195,8 @@ export function headHtml(h) {
     `<meta name="description" content="${esc(h.desc)}" />`,
     `<meta name="robots" content="${h.robots}" />`,
     h.canonical ? `<link rel="canonical" href="${h.canonical}" />` : '',
+    h.hero ? `<link rel="preload" as="image" href="${BASE}hero-wonderfur-mobile.webp" media="(max-width: 639px)" type="image/webp" fetchpriority="high" />` : '',
+    h.hero ? `<link rel="preload" as="image" href="${BASE}hero-wonderfur-desktop.webp" media="(min-width: 640px)" type="image/webp" fetchpriority="high" />` : '',
     `<meta property="og:type" content="${h.type}" />`,
     `<meta property="og:site_name" content="${BRAND}" />`,
     `<meta property="og:locale" content="ru_RU" />`,

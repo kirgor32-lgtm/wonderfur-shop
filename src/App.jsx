@@ -26,7 +26,7 @@ import AuthFlow, { PassInput, CallBox } from './AuthFlow'
 import { track, sendLead, crmEnabled, fetchOrderStatus } from './crm'
 import {
   BASE, contacts, seller, products, kinds, segments, searchHints, benefits, stats, checks, posts, contactTopics, faq, pages,
-  productPath, minPrice, img, declaration, manufacturer, minAll, heroPacks, lineupAll, recipes,
+  productPath, minPrice, img, declaration, manufacturer, minAll, lineupAll, recipes,
 } from './data'
 
 const icons = { Drumstick, Scale, HeartPulse, ShieldCheck, Factory, BadgeCheck }
@@ -310,9 +310,19 @@ function Hero({ nav }) {
   const st = useStore()
   return (
     <section className="wrap pt-4 lg:pt-6">
-      {/* большой баннер, как промо-слайд «Золотого Яблока»: серый фон, крупный текст, товары справа */}
-      <div className="relative grid overflow-hidden rounded-2xl bg-gray-1 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-center">
-        <div className="relative z-10 p-5 sm:p-10 xl:p-16">
+      <div className="relative min-h-[410px] overflow-hidden rounded-2xl bg-gray-1 sm:min-h-[480px] xl:min-h-[540px]">
+        <picture className="absolute inset-0">
+          <source media="(max-width: 639px)" srcSet={`${BASE}hero-wonderfur-mobile.webp`} />
+          <img
+            src={`${BASE}hero-wonderfur-desktop.webp`}
+            alt="Упаковки кормов Wonderfur для кошек и собак"
+            loading="eager"
+            fetchPriority="high"
+            className="size-full object-cover object-center"
+          />
+        </picture>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/95 via-white/65 to-transparent sm:bg-gradient-to-r sm:from-white/95 sm:via-white/65 sm:to-transparent" />
+        <div className="relative z-10 max-w-[620px] p-5 sm:p-10 xl:p-16">
           <span className="kicker hidden text-txt-2 sm:inline">суперпремиум · Санкт-Петербург</span>
           <h1 className="text-balance text-[24px] font-semibold leading-[1.1] tracking-[-0.02em] sm:mt-4 sm:text-[44px] sm:leading-[1.05] sm:tracking-[-0.03em] xl:text-[64px]">Корма Wonderfur для кошек и собак</h1>
           <p className="mt-2 text-[14px] leading-snug text-txt-2 sm:hidden">{recipes(products.length)} · от {minAll} ₽ · доставка бесплатно</p>
@@ -323,15 +333,6 @@ function Hero({ nav }) {
             <Link to={kinds.cat.path} className="flex h-11 items-center justify-center rounded-full bg-ink px-7 text-[15px] font-medium text-white hover:bg-ink-2 sm:h-12">кошкам</Link>
             <Link to={kinds.dog.path} className="flex h-11 items-center justify-center rounded-full bg-white px-7 text-[15px] font-medium hover:bg-gray-2 sm:h-12">собакам</Link>
           </div>
-        </div>
-        <div data-overlap="ok" className="pointer-events-none relative -mt-2 flex h-[210px] min-w-0 items-end justify-center overflow-hidden px-4 sm:mt-0 sm:h-[380px] sm:pt-4 md:h-[480px] xl:h-[540px]">
-          {/* упаковки — из текущего каталога: удалили товар в CRM, и его пачка здесь больше не появится */}
-          {heroPacks.map((p, i) => (
-            <img key={p.id} src={img(p.id)} {...IMG} alt={`Упаковка: ${p.name}`} fetchPriority="high"
-              className={cn('relative min-w-0 object-contain object-bottom drop-shadow-xl', heroPacks.length === 3
-                ? ['z-10 -mr-[6%] h-[80%] w-[30%] -rotate-6', 'z-20 h-[92%] w-[36%]', 'z-10 -ml-[6%] h-[76%] w-[30%] rotate-6'][i]
-                : 'z-10 h-[88%] w-[36%]')} />
-          ))}
         </div>
       </div>
       <div className="no-scrollbar mt-6 grid grid-flow-col gap-3 overflow-x-auto md:grid-flow-row md:grid-cols-2 lg:grid-cols-4">
@@ -652,7 +653,7 @@ function LeadForm({ topic, compact, onSubmit, cta = 'Отправить', doneTe
       <div className="rounded-lg bg-white p-8 text-center">
         <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-violet-dark text-white"><Check className="size-7" /></div>
         <h3 className="mt-4 text-2xl font-extrabold">Спасибо, {f.name.trim()}!</h3>
-        <p className="mt-2 text-txt-2">{doneText || 'Спасибо, скоро ответим.'}{crmEnabled ? '' : ' Это демо — заявка никуда не ушла.'}</p>
+        <p className="mt-2 text-txt-2">{doneText || 'Спасибо, скоро ответим.'}</p>
       </div>
     )
   return (
@@ -1039,7 +1040,6 @@ function ThanksPage({ nav }) {
         <h1 className="mt-5 text-[32px] font-extrabold leading-tight sm:text-[40px]">Спасибо{name}!</h1>
         <p className="mt-3 text-lg text-txt-2">
           {order ? `Заказ №${t.n} принят.` : t?.type === 'lead' ? (t.text ? cap(t.text.replace(/^Спасибо[,!.]?\s*/, '')) : 'Заявка отправлена, скоро ответим.') : 'Мы получили ваше обращение.'}
-          {crmEnabled ? '' : ' Это демо — данные никуда не ушли.'}
         </p>
       </div>
       {steps && (
@@ -1121,7 +1121,7 @@ function Footer({ nav }) {
           <Link to={pages.consent.path} className="underline hover:text-white">Согласие на обработку данных</Link> ·{' '}
           <Link to={pages.terms.path} className="underline hover:text-white">Пользовательское соглашение</Link>
         </p>
-        <p>© 2026 Wonderfur, Санкт-Петербург. Демонстрационный сайт.{' '}<button onClick={() => window.dispatchEvent(new Event('wf-cookies'))} className="underline hover:text-white">Настройки cookie</button></p>
+        <p>© 2026 Wonderfur, Санкт-Петербург.{' '}<button onClick={() => window.dispatchEvent(new Event('wf-cookies'))} className="underline hover:text-white">Настройки cookie</button></p>
       </div>
     </footer>
   )
@@ -1547,7 +1547,7 @@ function Checkout() {
         <div className="rounded-lg bg-white p-8 text-center">
           <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-violet-dark text-white"><Check className="size-7" /></div>
           <h3 className="mt-4 text-2xl font-extrabold">Спасибо, {st.user?.name}!</h3>
-          <p className="mt-2 text-txt-2">Заказ №{done.n} принят и сохранён в личном кабинете. Когда он приедет в пункт выдачи, придёт смс с кодом для получения.{crmEnabled ? '' : ' Это демо — заказ никуда не ушёл.'}</p>
+          <p className="mt-2 text-txt-2">Заказ №{done.n} принят и сохранён в личном кабинете. Когда он приедет в пункт выдачи, придёт смс с кодом для получения.</p>
           <Button onClick={() => { st.setCheckout(false); setDone(null) }} className={cn(inkBtn, 'mt-5 h-11 px-8')}>Хорошо</Button>
         </div>
       </>
@@ -1579,8 +1579,7 @@ function Checkout() {
               <Suspense fallback={<div className="flex h-[260px] items-center justify-center"><Loader2 className="size-6 animate-spin text-txt-2" /></div>}>
                 <PickupPicker value={pt} onChange={(p) => { setPt(p); setErr('') }} />
               </Suspense>
-              {/* ДЕМО-пометка: точки — магазины из OpenStreetMap, а не настоящий список 5Post */}
-              <p className="text-[11px] leading-4 text-txt-2 sm:text-xs">Демо: на карте магазины «Пятёрочка» и «Перекрёсток» из OpenStreetMap, не в каждом есть пункт 5Post.</p>
+              <p className="text-[11px] leading-4 text-txt-2 sm:text-xs">На карте показаны магазины «Пятёрочка» и «Перекрёсток». Наличие пункта 5Post уточняется при оформлении.</p>
             </>
           )}
           <button type="button" onClick={() => { setManual(!manual); setErr('') }} className="text-sm text-violet-dark underline">{manual ? 'Выбрать на карте' : 'Нет нужного пункта? Напишите адрес'}</button>
@@ -1731,7 +1730,7 @@ function EditProfile({ onClose }) {
         <>
           <p className="text-[15px]">Код отправлен {`в ${channelNames[sent?.channel]}`}. <button type="button" className="text-violet-dark underline" onClick={() => { setStep('form'); setErr('') }}>Изменить номер</button></p>
           <Input aria-label="Код" autoFocus placeholder="Код" inputMode="numeric" autoComplete="one-time-code" maxLength={4} value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.replace(/\D/g, '') })} className="h-12 rounded-lg bg-white text-center text-xl tracking-[.5em]" />
-          {sent?.demoCode && <p className="text-xs text-txt-2">Демо: сообщения пока не отправляются, ваш код — {sent.demoCode}</p>}
+          {sent?.demoCode && <p className="text-xs text-txt-2">Код для входа — {sent.demoCode}</p>}
           <button type="button" onClick={() => requestCode('call')} className="text-sm text-violet-dark underline">Нет кода? Подтвердить номер звонком</button>
         </>
       )}

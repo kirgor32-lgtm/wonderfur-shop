@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { useStore, fmtPhone } from './store'
 import { ConsentField } from './ConsentField'
 import { CONSENT_EDITION } from './privacy-choice.js'
+import { crmEnabled } from './crm'
 import {
   sendCode, checkCode, callStatus, lookup, loginPassword, setPassword, saveAccount, findAccount, linkEmail, phoneFor,
   linkedChannels, channelNames, maskLogin, isEmail, authLive, authLiveNow, authConfig, isLinked, botLink,
@@ -89,7 +90,7 @@ export function CallBox({ login, sent, move = false, onDone, onRetry, onChangePh
       <p className="text-[13px] text-txt-2">Звоните именно с номера {maskLogin(login)} — звонок с другого номера не засчитается.</p>
       {sent.demo ? (
         <div className={cn(R, 'space-y-2 border border-dashed border-gray-3 p-3 text-xs text-txt-2')}>
-          <div>Демо: звонки пока не подключены. Здесь появится номер для звонка.</div>
+          <div>Звонки сейчас недоступны. Попробуйте войти через Telegram или Max.</div>
           <button type="button" disabled={busy || left <= 0} onClick={demoCall} className={cn(inkBtn, 'h-10 w-full')}>{busy ? <Loader2 className="mx-auto size-4 animate-spin" /> : 'Я позвонил'}</button>
         </div>
       ) : (
@@ -319,7 +320,7 @@ export default function AuthFlow({ note }) {
   const callBox = (consent) => <CallBox login={login} sent={sent} onDone={called} onRetry={() => request(kind, 'call')} onChangePhone={() => go('start')} consent={consent} />
   const sentCopy = (
     <>
-      {sent?.demoCode && <p className="text-xs text-txt-2">Демо: {sent.channel === 'email' ? 'письма' : 'сообщения'} пока не отправляются, ваш {what} — <b className="text-ink">{sent.demoCode}</b></p>}
+      {sent?.demoCode && <p className="text-xs text-txt-2">Ваш {what} — <b className="text-ink">{sent.demoCode}</b></p>}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
         {wait > 0
           ? <span className="text-txt-2">Отправить повторно через {mmss(wait)}</span>
@@ -365,9 +366,9 @@ export default function AuthFlow({ note }) {
           <ConsentField checked={consented} onChange={(value) => { setConsented(value); setErr('') }} error={err === 'Отметьте согласие, чтобы продолжить' && err} />
           {/* поле-ловушка для ботов: людям не видно */}
           <input type="text" name="company" tabIndex={-1} autoComplete="off" aria-hidden="true" value={f.trap} onChange={(e) => set('trap')(e.target.value)} className="absolute -left-[9999px] h-px w-px opacity-0" />
-          {!live && mode === 'phone' && (
+          {!crmEnabled && !live && mode === 'phone' && (
             <div className={cn(R, 'border border-dashed border-gray-3 p-3 text-xs text-txt-2')}>
-              <div className="mb-2">Демо — что есть у этого номера (на сайте с сервером это проверится само):</div>
+              <div className="mb-2">Выберите доступный способ подтверждения:</div>
               <div className="flex flex-wrap gap-1.5">
                 {[['Telegram', ['telegram']], ['Max', ['max']], ['Оба', ['telegram', 'max']], ['Ничего', []]].map(([l, v]) => (
                   <button key={l} type="button" onClick={() => setDemo(v)} aria-pressed={demo.join() === v.join()}
