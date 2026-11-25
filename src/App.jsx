@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils'
 import { legal } from './legal.js'
 import { StoreProvider, useStore, rub, fmtPhone } from './store'
 import { RouterProvider, useRoute, Link } from './router'
-import { myOrders, sendCode, checkCode, linkedChannels, setLinked, channelNames, findAccount, saveAccount, authLiveNow, messengerInfo, botLink, setPassword, movePassword, linkEmail, emailOf, isEmail, phoneFor, authConfig } from './auth'
+import { myOrders, sendCode, checkCode, channelNames, findAccount, saveAccount, authLiveNow, messengerInfo, botLink, setPassword, isEmail, phoneFor, authConfig } from './auth'
 import AuthFlow, { PassInput, CallBox } from './AuthFlow'
 import { track, sendLead, crmEnabled, fetchOrderStatus } from './crm'
 import {
@@ -1623,34 +1623,23 @@ function Login() {
 
 // Привязка мессенджеров: покупатель открывает нашего бота и делится номером — коды для входа приходят туда, звонить не нужно
 function LinkedMessengers() {
-  const st = useStore()
-  const [info, setInfo] = useState(null) // данные CRM: какие боты есть и к каким привязан номер
-  const [linked, setL] = useState(() => linkedChannels(st.user.phone))
+  const [info, setInfo] = useState(undefined) // undefined — проверяем, null — CRM недоступна
   useEffect(() => { messengerInfo().then(setInfo) }, [])
-  const toggle = (c) => setL(setLinked(st.user.phone, c, !linked.includes(c)))
   const btn = 'flex h-11 min-w-0 items-center justify-center gap-2 px-2 rounded-lg text-sm font-semibold transition-colors'
   const mark = <span className="flex items-center gap-0.5 whitespace-nowrap text-xs font-medium"><Check className="size-3.5" />подключён</span>
   return (
     <div className="rounded-lg border border-gray-2 p-4 @container">
       <div className="font-semibold">Коды для входа</div>
       <p className="mt-1 text-sm text-txt-2">Откройте нашего бота и нажмите «Авторизоваться» — коды будут приходить туда, и звонить для входа не придётся.</p>
-      <div className="mt-3 grid grid-cols-1 gap-2 @min-[270px]:grid-cols-2">
+      {info === undefined ? <p className="mt-3 text-sm text-txt-2">Проверяем подключение…</p> : info === null ? <p className="mt-3 text-sm text-txt-2">Сервис входа временно недоступен. Попробуйте позже.</p> : <div className="mt-3 grid grid-cols-1 gap-2 @min-[270px]:grid-cols-2">
         {[['telegram', TgIcon], ['max', MaxIcon]].map(([c, I]) => {
-          if (info) {
-            const bot = info.bots.find((b) => b.type === c)
-            const on = info.linked.includes(c)
-            if (!bot) return <div key={c} className={cn(btn, 'bg-gray-1 text-txt-2')}><I className="size-6 opacity-50" />{channelNames[c]} скоро</div>
-            return <a key={c} href={botLink(bot)} target="_blank" rel="noreferrer" className={cn(btn, on ? 'bg-violet-soft text-violet-dark' : 'bg-gray-1 hover:bg-gray-2')}><I className="size-6" /><span className="flex min-w-0 flex-col items-start leading-tight"><span className="truncate">{channelNames[c]}</span>{on && mark}</span></a>
-          }
-          const on = linked.includes(c) // демо: без CRM привязка хранится в браузере
-          return (
-            <button key={c} type="button" onClick={() => toggle(c)} aria-pressed={on} className={cn(btn, on ? 'bg-violet-soft text-violet-dark' : 'bg-gray-1 hover:bg-gray-2')}>
-              <I className="size-6" /><span className="flex min-w-0 flex-col items-start leading-tight"><span className="truncate">{channelNames[c]}</span>{on && mark}</span>
-            </button>
-          )
+          const bot = info.bots.find((b) => b.type === c)
+          const on = info.linked.includes(c)
+          if (!bot) return <div key={c} className={cn(btn, 'bg-gray-1 text-txt-2')}><I className="size-6 opacity-50" />{channelNames[c]} скоро</div>
+          return <a key={c} href={botLink(bot)} target="_blank" rel="noreferrer" className={cn(btn, on ? 'bg-violet-soft text-violet-dark' : 'bg-gray-1 hover:bg-gray-2')}><I className="size-6" /><span className="flex min-w-0 flex-col items-start leading-tight"><span className="truncate">{channelNames[c]}</span>{on && mark}</span></a>
         })}
-      </div>
-      {info && <button type="button" onClick={() => messengerInfo().then(setInfo)} className="mt-2 text-xs text-txt-2 underline hover:text-ink">Я поделился номером — обновить</button>}
+      </div>}
+      {info && <button type="button" onClick={() => { setInfo(undefined); messengerInfo().then(setInfo) }} className="mt-2 text-xs text-txt-2 underline hover:text-ink">Я поделился номером — обновить</button>}
     </div>
   )
 }
@@ -1659,7 +1648,7 @@ function LinkedMessengers() {
 function EditProfile({ onClose }) {
   const st = useStore()
   const u = st.user
-  const [f, setF] = useState({ name: u.name || '', surname: u.surname || '', birth: u.birth || '', phone: u.phone, code: '', email: u.email || emailOf(u.phone), newPass: '' })
+  const [f, setF] = useState({ name: u.name || '', surname: u.surname || '', birth: u.birth || '', phone: u.phone, code: '', email: u.email || '', newPass: '' })
   const [step, setStep] = useState('form') // form | code
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
@@ -1672,11 +1661,14 @@ function EditProfile({ onClose }) {
     const acc = { name: f.name.trim(), surname: f.surname.trim(), birth: f.birth }
     const live = authLiveNow()
     const sv = await saveAccount(phone, live ? { ...acc, email: f.email.trim().toLowerCase() } : acc)
-    if (sv?.error) { setErr(sv.error); return false }
+    if (sv?.error) {
+      // checkCode/callStatus уже сохранил новую CRM-сессию и lastCheck для перенесённого номера.
+      // Синхронизируем профиль Store, чтобы повторить saveAccount с этой обычной новой сессией.
+      if (live && phone !== u.phone) st.setUser({ ...u, phone })
+      setStep('form'); setErr(sv.error); return false
+    }
     acc.email = f.email.trim().toLowerCase()
-    if (phone !== u.phone) { movePassword(u.phone, phone); await saveAccount(u.phone, null) } // старый номер больше не ведёт в этот аккаунт
     if (f.newPass) await setPassword(phone, f.newPass)
-    if (!authLiveNow()) linkEmail(f.email.trim(), phone)
     st.setUser({ ...u, ...acc, phone })
     onClose(true)
   }
@@ -1705,7 +1697,7 @@ function EditProfile({ onClose }) {
   }
   // via: 'call' — подтвердить новый номер звонком вместо кода в мессенджере
   const requestCode = async (via) => {
-    const r = await sendCode(f.phone, { startedAt: started.current, via, demoLinked: authLiveNow() ? null : ['telegram'] }) // демо: как будто у номера есть Telegram
+    const r = await sendCode(f.phone, { startedAt: started.current, via })
     if (r.error) return setErr(r.error)
     setErr(''); setSent(r); setStep('code')
   }
@@ -1730,7 +1722,6 @@ function EditProfile({ onClose }) {
         <>
           <p className="text-[15px]">Код отправлен {`в ${channelNames[sent?.channel]}`}. <button type="button" className="text-violet-dark underline" onClick={() => { setStep('form'); setErr('') }}>Изменить номер</button></p>
           <Input aria-label="Код" autoFocus placeholder="Код" inputMode="numeric" autoComplete="one-time-code" maxLength={4} value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.replace(/\D/g, '') })} className="h-12 rounded-lg bg-white text-center text-xl tracking-[.5em]" />
-          {sent?.demoCode && <p className="text-xs text-txt-2">Код для входа — {sent.demoCode}</p>}
           <button type="button" onClick={() => requestCode('call')} className="text-sm text-violet-dark underline">Нет кода? Подтвердить номер звонком</button>
         </>
       )}

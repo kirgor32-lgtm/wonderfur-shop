@@ -10,10 +10,9 @@ import { cn } from '@/lib/utils'
 import { useStore, fmtPhone } from './store'
 import { ConsentField } from './ConsentField'
 import { CONSENT_EDITION } from './privacy-choice.js'
-import { crmEnabled } from './crm'
 import {
-  sendCode, checkCode, callStatus, lookup, loginPassword, setPassword, saveAccount, findAccount, linkEmail, phoneFor,
-  linkedChannels, channelNames, maskLogin, isEmail, authLive, authLiveNow, authConfig, isLinked, botLink,
+  sendCode, checkCode, callStatus, lookup, loginPassword, setPassword, saveAccount, findAccount, phoneFor,
+  channelNames, maskLogin, isEmail, authLive, authLiveNow, authConfig, isLinked, botLink,
 } from './auth'
 
 const inkBtn = 'h-11 rounded-full bg-ink px-5 text-sm font-medium text-white hover:bg-ink-2'
@@ -190,10 +189,9 @@ export default function AuthFlow({ note }) {
   const [step, setStep] = useState('start') // start | login | register | profile | reset
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
-  const [sent, setSent] = useState(null) // { channel, demoCode, kind, login, via, firstPass }
+  const [sent, setSent] = useState(null) // { channel, kind, login, via, firstPass }
   const [wait, setWait] = useState(0)
   const [help, setHelp] = useState(false)
-  const [demo, setDemo] = useState(['telegram']) // только демо: какие мессенджеры «есть» у номера
   const [live, setLive] = useState(authLiveNow()) // CRM на связи: код шлёт бот или смс
   useEffect(() => { authLive().then(setLive) }, [])
   const started = useRef(Date.now())
@@ -213,7 +211,7 @@ export default function AuthFlow({ note }) {
     // сначала — бот: если номер в нём ещё не подтверждён, CRM ничего не шлёт и не звонит, а покупатель выбирает способ сам
     if (via === '' && live && mode === 'phone') via = 'bot'
     setBusy(true)
-    const res = await sendCode(login, { trap: f.trap, startedAt: started.current, via, kind, demoLinked: live ? null : [...new Set([...demo, ...linkedChannels(f.phone)])] })
+    const res = await sendCode(login, { trap: f.trap, startedAt: started.current, via, kind })
     setBusy(false)
     if (res.resendIn) setWait(res.resendIn)
     // код уже отправлен на этот же номер минуту назад — просто возвращаемся к вводу
@@ -303,7 +301,6 @@ export default function AuthFlow({ note }) {
     if (mode === 'email') acc.email = f.email.trim().toLowerCase()
     const p = await setPassword(phone, f.newPass)
     if (p.error) { setBusy(false); return setErr(p.error) }
-    if (mode === 'email') linkEmail(f.email, phone)
     setBusy(false)
     enter(phone, acc)
   }
@@ -320,7 +317,6 @@ export default function AuthFlow({ note }) {
   const callBox = (consent) => <CallBox login={login} sent={sent} onDone={called} onRetry={() => request(kind, 'call')} onChangePhone={() => go('start')} consent={consent} />
   const sentCopy = (
     <>
-      {sent?.demoCode && <p className="text-xs text-txt-2">Ваш {what} — <b className="text-ink">{sent.demoCode}</b></p>}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
         {wait > 0
           ? <span className="text-txt-2">Отправить повторно через {mmss(wait)}</span>
@@ -366,17 +362,6 @@ export default function AuthFlow({ note }) {
           <ConsentField checked={consented} onChange={(value) => { setConsented(value); setErr('') }} error={err === 'Отметьте согласие, чтобы продолжить' && err} />
           {/* поле-ловушка для ботов: людям не видно */}
           <input type="text" name="company" tabIndex={-1} autoComplete="off" aria-hidden="true" value={f.trap} onChange={(e) => set('trap')(e.target.value)} className="absolute -left-[9999px] h-px w-px opacity-0" />
-          {!crmEnabled && !live && mode === 'phone' && (
-            <div className={cn(R, 'border border-dashed border-gray-3 p-3 text-xs text-txt-2')}>
-              <div className="mb-2">Выберите доступный способ подтверждения:</div>
-              <div className="flex flex-wrap gap-1.5">
-                {[['Telegram', ['telegram']], ['Max', ['max']], ['Оба', ['telegram', 'max']], ['Ничего', []]].map(([l, v]) => (
-                  <button key={l} type="button" onClick={() => setDemo(v)} aria-pressed={demo.join() === v.join()}
-                    className={cn('rounded-full px-3 py-1 font-semibold', demo.join() === v.join() ? 'bg-ink text-white' : 'bg-white text-ink ring-1 ring-gray-2')}>{l}</button>
-                ))}
-              </div>
-            </div>
-          )}
         </>
       )}
 
