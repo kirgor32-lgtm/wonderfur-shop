@@ -1,4 +1,4 @@
-/*! pay-widget v1.0.0 | embeddable payment widget (SBP + cards) | built 2026-11-18 */
+/*! pay-widget v1.0.0 | embeddable payment widget (SBP + cards) | built 2026-11-26 */
 (function (global) {
 'use strict';
 // ---- src/qr.js ----
@@ -745,8 +745,9 @@ var CARD_ADAPTERS = {
     }
   },
 
-  // T-Bank: card data is entered on the bank's own payment page (PaymentURL from Init).
-  tbank: { mode: 'hosted' }
+  // T-Bank / Tochka: card data is entered on the bank's own hosted payment page.
+  tbank: { mode: 'hosted' },
+  tochka: { mode: 'hosted' }
 };
 
 /** Sites can plug in their own acquirer: PayWidget.registerCardAdapter('name', { mode, tokenize }). */
