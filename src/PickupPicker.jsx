@@ -6,16 +6,19 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
 import { Search, LocateFixed, Loader2, MapPin, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { crmConfig } from './crm.js'
+import { pickupPointLabel, pickupPointsUrl } from './pickup.js'
 
 try { sessionStorage.removeItem('wf-chunk-reload') } catch {} // карта загрузилась
 const SPB = [59.9386, 30.3141]
 const brands = { p: { name: 'Пятёрочка', color: '#d6352a' }, x: { name: 'Перекрёсток', color: '#1f7a3d' } }
+const pointColor = (p) => p.source === '5post' ? '#d6352a' : brands[p.b]?.color || '#d6352a'
 const km = (a, b) => {
   const dy = (a[0] - b[0]) * 111.32, dx = (a[1] - b[1]) * 111.32 * Math.cos((a[0] * Math.PI) / 180)
   return Math.hypot(dx, dy)
 }
 const fmtKm = (d) => (d < 1 ? `${Math.round(d * 100) * 10} м` : `${d.toFixed(1).replace('.', ',')} км`)
-export const pointLabel = (p) => `${brands[p.b].name}, ${p.a}`
+export const pointLabel = pickupPointLabel
 
 export default function PickupPicker({ value, onChange }) {
   const box = useRef(null)
@@ -27,11 +30,27 @@ export default function PickupPicker({ value, onChange }) {
   const [q, setQ] = useState('')
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+  const [source, setSource] = useState('loading')
 
   // точки + карта (leaflet грузится только когда открыли этот шаг)
   useEffect(() => {
     let off = false
-    Promise.all([import('leaflet'), fetch(`${import.meta.env.BASE_URL}pickup-points.json`).then((r) => r.json())]).then(([mod, pts]) => {
+    const loadPoints = async () => {
+      const url = pickupPointsUrl(crmConfig.api, crmConfig.key)
+      if (url) {
+        try {
+          const r = await fetch(url)
+          const data = await r.json()
+          if (r.ok && Array.isArray(data.points) && data.points.length) {
+            setSource(data.stale ? 'fivepost-stale' : 'fivepost')
+            return data.points.map((p) => ({ ...p, source: '5post' }))
+          }
+        } catch { /* ниже загрузится резервная карта магазинов */ }
+      }
+      setSource('fallback')
+      return fetch(`${import.meta.env.BASE_URL}pickup-points.json`).then((r) => r.json())
+    }
+    Promise.all([import('leaflet'), loadPoints()]).then(([mod, pts]) => {
       if (off || !box.current) return
       L.current = mod.default || mod
       const m = L.current.map(box.current, { zoomControl: true, renderer: L.current.canvas({ tolerance: 14 }) }).setView(value ? [value.lat, value.lon] : SPB, value ? 15 : 11)
@@ -51,7 +70,7 @@ export default function PickupPicker({ value, onChange }) {
     const g = L.current.layerGroup()
     for (const p of points) {
       const sel = value?.id === p.id
-      L.current.circleMarker([p.lat, p.lon], { radius: sel ? 11 : 7, color: sel ? '#1d1c22' : '#fff', weight: sel ? 3 : 1.5, fillColor: brands[p.b].color, fillOpacity: 1 })
+      L.current.circleMarker([p.lat, p.lon], { radius: sel ? 11 : 7, color: sel ? '#1d1c22' : '#fff', weight: sel ? 3 : 1.5, fillColor: pointColor(p), fillOpacity: 1 })
         .bindTooltip(pointLabel(p)).on('click', () => onChange(p)).addTo(g)
     }
     g.addTo(map.current)
@@ -75,10 +94,10 @@ export default function PickupPicker({ value, onChange }) {
     if (t.length < 3) return
     setBusy(true); setMsg('')
     try {
-      const u = `https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=ru&countrycodes=ru&viewbox=29.4,60.25,30.8,59.6&bounded=1&q=${encodeURIComponent(t)}`
+      const u = `https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=ru&countrycodes=ru&viewbox=27.5,61.3,32.3,58.8&bounded=1&q=${encodeURIComponent(t)}`
       const [r] = await (await fetch(u)).json()
       if (r) fly(+r.lat, +r.lon, 15)
-      else setMsg('Не нашли такой адрес в Петербурге — попробуйте написать иначе')
+      else setMsg('Не нашли такой адрес в Петербурге или Ленобласти — попробуйте написать иначе')
     } catch { setMsg('Поиск адреса сейчас недоступен — подвиньте карту вручную') }
     setBusy(false)
   }
@@ -110,7 +129,9 @@ export default function PickupPicker({ value, onChange }) {
         </div>
         {msg && <p className="mt-1.5 text-[13px] text-destructive">{msg}</p>}
         <div className="mt-2 hidden gap-3 text-xs text-txt-2 md:flex">
-          {Object.values(brands).map((b) => <span key={b.name} className="flex items-center gap-1"><span className="size-2.5 rounded-full" style={{ background: b.color }} />{b.name}</span>)}
+          {source.startsWith('fivepost')
+            ? <span className="flex items-center gap-1"><span className="size-2.5 rounded-full bg-[#d6352a]" />Действующие пункты 5Post</span>
+            : Object.values(brands).map((b) => <span key={b.name} className="flex items-center gap-1"><span className="size-2.5 rounded-full" style={{ background: b.color }} />{b.name}</span>)}
         </div>
         <ul className="mt-2 max-h-[210px] flex-1 space-y-1.5 overflow-y-auto overscroll-contain pr-1 md:max-h-none">
           {list.map((p) => (
@@ -118,15 +139,16 @@ export default function PickupPicker({ value, onChange }) {
               <button type="button" onClick={() => pick(p)}
                 className={cn('w-full rounded-[2px] border bg-white px-3 py-1.5 text-left text-sm transition-colors md:py-2', value?.id === p.id ? 'border-ink ring-1 ring-ink' : 'border-gray-2 hover:border-ink')}>
                 <span className="flex items-start justify-between gap-2">
-                  <span className="flex items-start gap-1.5 font-semibold"><MapPin className="mt-0.5 size-3.5 shrink-0" style={{ color: brands[p.b].color }} />{brands[p.b].name}</span>
+                  <span className="flex items-start gap-1.5 font-semibold"><MapPin className="mt-0.5 size-3.5 shrink-0" style={{ color: pointColor(p) }} />{p.source === '5post' ? (p.name || '5Post') : brands[p.b].name}</span>
                   <span className="shrink-0 text-xs text-txt-2">{fmtKm(p.d)}</span>
                 </span>
-                <span className="block pl-5">{p.a}</span>
-                {p.h && <span className="flex items-center gap-1 pl-5 text-xs text-txt-2"><Clock className="size-3" />{p.h}</span>}
+                <span className="block pl-5">{p.source === '5post' ? p.address : p.a}</span>
+                {(p.hours || p.h) && <span className="flex items-center gap-1 pl-5 text-xs text-txt-2"><Clock className="size-3" />{p.hours || p.h}</span>}
               </button>
             </li>
           ))}
         </ul>
+        <p className="mt-2 text-[11px] leading-4 text-txt-2 sm:text-xs">{source.startsWith('fivepost') ? `Точки 5Post по Санкт-Петербургу и Ленинградской области${source === 'fivepost-stale' ? ' · сохранённая выгрузка' : ''}.` : 'Пока показаны магазины «Пятёрочка» и «Перекрёсток»; наличие 5Post уточним после заказа.'}</p>
       </div>
     </div>
   )

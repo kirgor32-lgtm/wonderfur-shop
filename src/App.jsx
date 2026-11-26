@@ -24,6 +24,7 @@ import { RouterProvider, useRoute, Link } from './router'
 import { myOrders, sendCode, checkCode, channelNames, findAccount, saveAccount, authLiveNow, messengerInfo, botLink, setPassword, isEmail, phoneFor, authConfig } from './auth'
 import AuthFlow, { PassInput, CallBox } from './AuthFlow'
 import { track, sendLead, crmEnabled, fetchOrderStatus } from './crm'
+import { pickupPointDelivery } from './pickup.js'
 import {
   BASE, contacts, seller, products, kinds, segments, searchHints, benefits, stats, checks, posts, contactTopics, faq, pages,
   productPath, minPrice, img, declaration, manufacturer, minAll, lineupAll, recipes,
@@ -1504,7 +1505,7 @@ function Checkout() {
   const submit = (e) => {
     e.preventDefault()
     if (sending.current) return
-    const where = manual ? point.trim() : pt ? `${pt.b === 'p' ? 'Пятёрочка' : 'Перекрёсток'}, ${pt.a}` : ''
+    const where = manual ? point.trim() : pt ? pickupPointDelivery(pt) : ''
     if (where.length < 5) return setErr(manual ? 'Укажите адрес пункта выдачи' : 'Выберите пункт на карте или в списке')
     setErr('')
     const n = String(Date.now()).slice(-6)
@@ -1579,13 +1580,12 @@ function Checkout() {
               <Suspense fallback={<div className="flex h-[260px] items-center justify-center"><Loader2 className="size-6 animate-spin text-txt-2" /></div>}>
                 <PickupPicker value={pt} onChange={(p) => { setPt(p); setErr('') }} />
               </Suspense>
-              <p className="text-[11px] leading-4 text-txt-2 sm:text-xs">На карте показаны магазины «Пятёрочка» и «Перекрёсток». Наличие пункта 5Post уточняется при оформлении.</p>
             </>
           )}
           <button type="button" onClick={() => { setManual(!manual); setErr('') }} className="text-sm text-violet-dark underline">{manual ? 'Выбрать на карте' : 'Нет нужного пункта? Напишите адрес'}</button>
           <div className="sticky -bottom-5 z-10 -mx-5 -mb-5 flex flex-col gap-2 border-t border-gray-2 bg-white px-5 py-3 shadow-[0_-6px_16px_rgba(0,0,0,0.06)] sm:static sm:mx-0 sm:mb-0 sm:flex-row sm:items-center sm:gap-3 sm:rounded-lg sm:border-0 sm:p-4 sm:shadow-none">
             <div className="min-w-0 flex-1 text-sm">
-              {!manual && (pt ? <div className="flex items-start gap-1.5 font-semibold"><Check className="mt-0.5 size-4 shrink-0 text-violet-dark" /><span>{pt.b === 'p' ? 'Пятёрочка' : 'Перекрёсток'}, {pt.a}</span></div> : <div className="text-txt-2">Пункт ещё не выбран — нажмите на него в списке</div>)}
+              {!manual && (pt ? <div className="flex items-start gap-1.5 font-semibold"><Check className="mt-0.5 size-4 shrink-0 text-violet-dark" /><span>{pickupPointDelivery(pt)}</span></div> : <div className="text-txt-2">Пункт ещё не выбран — нажмите на него в списке</div>)}
               <div className="hidden text-txt-2 sm:block"><span className="text-ink">{fullName}</span> · <span className="whitespace-nowrap">{st.user.phone}</span> · <button type="button" onClick={() => st.setUser(null)} className="underline hover:text-ink">Не вы?</button></div>
             </div>
             <Button type="submit" disabled={busy || (!manual && !pt)} className={cn(inkBtn, 'h-12 w-full shrink-0 px-8 text-base sm:w-auto')}>Перейти к оплате</Button>
