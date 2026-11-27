@@ -1,4 +1,4 @@
-/*! pay-widget v1.0.0 | embeddable payment widget (SBP + cards) | built 2026-11-26 */
+/*! pay-widget v1.0.0 | embeddable payment widget (SBP + cards) | built 2026-11-27 */
 (function (global) {
 'use strict';
 // ---- src/qr.js ----
@@ -582,20 +582,23 @@ var STYLES = [
 '.pw-note{padding:12px 14px;border-radius:var(--_radius-sm);background:var(--_surface);font-size:14px;text-align:left;margin:4px 0 12px}',
 '.pw-note b{display:block;margin-bottom:2px}',
 
-/* banks */
-'.pw-popular{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}',
-'.pw-bank-tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:var(--_radius-sm);background:var(--_surface);font-size:12px;font-weight:600;min-height:76px;min-width:0}',
+'/* banks */',
+'.pw-bank-section-title{margin:10px 2px 8px;font-size:13px;font-weight:700;color:var(--_muted);text-transform:uppercase;letter-spacing:.045em}',
+'.pw-popular{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 16px}',
+'.pw-bank-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:10px 4px;border:1px solid var(--_border);border-radius:var(--_radius-sm);background:#fff;font-size:12px;font-weight:700;min-height:82px;min-width:0;box-shadow:0 2px 8px rgba(19,26,41,.05)}',
+'.pw-bank-tile:active{background:var(--_surface);transform:scale(.98)}',
 '.pw-bank-tile span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-'.pw-bank-logo{width:36px;height:36px;border-radius:10px;object-fit:contain;background:#fff;flex:none}',
-'.pw-bank-letter{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--_border);font-weight:700;flex:none}',
-'.pw-search{position:relative;margin-bottom:6px}',
+'.pw-bank-logo{width:40px;height:40px;border-radius:11px;object-fit:contain;background:#fff;flex:none}',
+'.pw-bank-letter{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:#E8ECF3;color:#34405A;font-weight:800;flex:none}',
+'.pw-search{position:relative;margin-bottom:10px}',
 '.pw-search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--_muted)}',
-'.pw-input{width:100%;height:50px;padding:0 14px;border:1.5px solid var(--_border);border-radius:var(--_radius-sm);background:var(--_bg);font-size:16px;outline:none;transition:border-color .15s}',
+'.pw-input{width:100%;height:50px;padding:0 14px;border:1.5px solid #C8CEDA;border-radius:var(--_radius-sm);background:#fff;font-size:16px;outline:none;transition:border-color .15s,box-shadow .15s}',
 '.pw-input:focus{border-color:var(--_primary)}',
 '.pw-input.pw-invalid{border-color:var(--_danger)}',
 '.pw-search .pw-input{padding-left:42px}',
-'.pw-bank-list{display:flex;flex-direction:column}',
-'.pw-bank-row{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 4px;text-align:left;border-bottom:1px solid var(--_surface);font-size:15px}',
+'.pw-bank-list{display:flex;flex-direction:column;gap:7px;padding-bottom:4px}',
+'.pw-bank-row{display:flex;align-items:center;gap:12px;min-height:60px;padding:9px 12px;text-align:left;border:1px solid var(--_border);border-radius:var(--_radius-sm);background:#fff;font-size:15px;font-weight:600;box-shadow:0 1px 4px rgba(19,26,41,.035)}',
+'.pw-bank-row:active{background:var(--_surface)}',
 '.pw-bank-row span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
 '.pw-bank-row svg{color:var(--_muted)}',
 '.pw-empty{padding:18px 4px;color:var(--_muted);text-align:center;font-size:14px}',
@@ -874,7 +877,9 @@ function createWidget(options, mountTarget) {
   function bankLogo(bank) {
     var letter = '<span class="pw-bank-letter">' + esc(bank.name.replace(/^(банк|ао|пао|ооо)\s+/i, '').charAt(0).toUpperCase()) + '</span>';
     if (!bank.logo) return letter;
-    return '<img class="pw-bank-logo" loading="lazy" alt="" src="' + esc(bank.logo) + '" data-letter="' + esc(bank.name.charAt(0)) + '">';
+    // Load through our backend: qr.nspk.ru images are often blocked on mobile networks/Safari.
+    var logo = banksBackup + '/logo/' + encodeURIComponent(bank.schema) + '.png';
+    return '<img class="pw-bank-logo" loading="lazy" alt="" src="' + esc(logo) + '" data-letter="' + esc(bank.name.charAt(0)) + '">';
   }
   function findBank(schema) {
     var list = st.banks || [];
@@ -970,7 +975,7 @@ function createWidget(options, mountTarget) {
         return b ? { bank: b, short: p.short } : null;
       }).filter(function (x) { return x && !(last && x.bank.schema === last.schema); });
       if (popular.length) {
-        html += '<div class="pw-popular">' + popular.map(function (x) {
+        html += '<div class="pw-bank-section-title">Популярные банки</div><div class="pw-popular">' + popular.map(function (x) {
           return '<button class="pw-bank-tile" data-action="bank" data-schema="' + esc(x.bank.schema) + '">' + bankLogo(x.bank) + '<span>' + esc(x.short) + '</span></button>';
         }).join('') + '</div>';
       }
