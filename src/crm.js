@@ -87,18 +87,27 @@ export async function fetchLoyalty(token) {
   } catch { return null }
 }
 
+const orderPayload = (o, awaitingPayment = false) => ({
+  number: o.n,
+  token: o.token || '',
+  bonus: o.bonusSpent || 0,
+  paid: !!o.paid,
+  awaiting_payment: awaitingPayment,
+  items: o.items.map((i) => ({ id: i.id, name: `${i.line} — ${i.name}`, w: i.w, qty: i.qty, price: i.price })),
+  discount: o.discount || 0,
+  promo: o.promo || '',
+  contact: { name: o.contact.name, phone: o.contact.phone, delivery: o.contact.delivery || '' },
+})
+
+// Создаём заказ в CRM ДО перехода к оплате. Если CRM недоступна, деньги не принимаем.
+export async function reserveOrder(o) {
+  if (!crmEnabled) return { ok: true }
+  return deliver('order', orderPayload(o, true))
+}
+
 export function sendOrder(o) {
   if (!crmEnabled) return
-  sendOrQueue('order', {
-    number: o.n,
-    token: o.token || '',
-    bonus: o.bonusSpent || 0,
-    paid: !!o.paid, // оплачен онлайн → в CRM сразу «Подтверждён»
-    items: o.items.map((i) => ({ id: i.id, name: `${i.line} — ${i.name}`, w: i.w, qty: i.qty, price: i.price })),
-    discount: o.discount || 0,
-    promo: o.promo || '',
-    contact: { name: o.contact.name, phone: o.contact.phone, delivery: o.contact.delivery || '' },
-  })
+  sendOrQueue('order', orderPayload(o))
 }
 
 export function sendLead(l) {

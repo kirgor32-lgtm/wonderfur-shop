@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { products } from './data'
-import { track, sendOrder, checkPromo, crmEnabled, fetchLoyalty } from './crm'
+import { track, sendOrder, reserveOrder as reserveCrmOrder, checkPromo, crmEnabled, fetchLoyalty } from './crm'
 import { getSession } from './auth'
 
 const Ctx = createContext(null)
@@ -94,10 +94,16 @@ export function StoreProvider({ children }) {
     const bonusSpent = bonusOn ? Math.min(bonusWant, bonusMax) : 0
     const totalWithDiscount = total - discount - bonusSpent
     const bonusEarn = loyalty ? Math.floor(totalWithDiscount * (loyalty.accrualPct || 5) / 100) : 0
+    const makeOrder = (contact, extra = {}) => ({
+      n: String(Date.now()).slice(-6), date: new Date().toLocaleDateString('ru-RU'), items,
+      total: totalWithDiscount, promo: promoDiscount ? promo.code : null, contact,
+      discount: promoDiscount, token: getSession()?.token, bonusSpent, ...extra,
+    })
+    const reserveOrder = (contact, extra = {}) => reserveCrmOrder(makeOrder(contact, extra))
     const placeOrder = (contact, extra = {}) => {
-      const o = { n: String(Date.now()).slice(-6), date: new Date().toLocaleDateString('ru-RU'), items, total: totalWithDiscount, promo: promoDiscount ? promo.code : null, contact, ...extra }
+      const o = makeOrder(contact, extra)
       setOrders((s) => [o, ...s])
-      sendOrder({ ...o, discount: promoDiscount, token: getSession()?.token, bonusSpent }) // в CRM; скидку клиента и бонусы CRM пересчитает сама
+      sendOrder(o) // повтор с тем же номером безопасен: CRM вернёт существующий заказ
       if (!user) setUser({ name: contact.name, phone: contact.phone })
       if (promoDiscount) setPromoRedeemed(true)
       setBonusOn(false); setBonusWant(0)
@@ -106,7 +112,7 @@ export function StoreProvider({ children }) {
       setPromo(null)
       return o
     }
-    return { items, add, setQty, qtyOf, count, total, fav, favCount: fav.length, toggleFav, compare, toggleCompare, clearCompare: () => setCompare([]), user, setUser, orders, setOrders, placeOrder, panel, setPanel, checkout, setCheckout, promo, applyPromo, clearPromo, discount, totalWithDiscount, firstOrderEligible,
+    return { items, add, setQty, qtyOf, count, total, fav, favCount: fav.length, toggleFav, compare, toggleCompare, clearCompare: () => setCompare([]), user, setUser, orders, setOrders, reserveOrder, placeOrder, panel, setPanel, checkout, setCheckout, promo, applyPromo, clearPromo, discount, totalWithDiscount, firstOrderEligible,
       loyalty, clientPct, clientDiscount, promoDiscount, bonusBalance, bonusMax, bonusOn, bonusSpent, bonusEarn,
       setBonusOn: (on) => { setBonusOn(on); if (on && !bonusWant) setBonusWant(bonusMax) }, setBonusWant }
   }, [items, fav, compare, user, orders, panel, checkout, promo, promoRedeemed, loyaltyRaw, bonusOn, bonusWant])

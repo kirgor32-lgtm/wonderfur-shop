@@ -1502,14 +1502,24 @@ function Checkout() {
   const sending = useRef(false) // защита от двойного нажатия
   const step = done ? 'done' : !st.user ? 'auth' : 'point'
   const fullName = st.user ? [st.user.name, st.user.surname].filter(Boolean).join(' ') : ''
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
     if (sending.current) return
     const where = manual ? point.trim() : pt ? pickupPointDelivery(pt) : ''
     if (where.length < 5) return setErr(manual ? 'Укажите адрес пункта выдачи' : 'Выберите пункт на карте или в списке')
     setErr('')
     const n = String(Date.now()).slice(-6)
+    const contact = { name: fullName, phone: st.user.phone, delivery: `5Post: ${where}` }
     setBusy(true)
+    // Сначала резервируем заказ в CRM: даже если покупатель закроет банк или перезагрузит страницу,
+    // оплаченный заказ уже не потеряется.
+    try {
+      await st.reserveOrder(contact, { n })
+    } catch {
+      setBusy(false)
+      setErr('Не удалось создать заказ в CRM. Деньги не списаны — проверьте интернет и попробуйте ещё раз')
+      return
+    }
     // Окно оплаты Fable открывается само по себе (на телефоне — шторка снизу, на компьютере — окно по центру),
     // поэтому наше окно оформления на это время закрываем: иначе оно перехватывает клики
     openPay({ amount: st.totalWithDiscount, orderId: n })

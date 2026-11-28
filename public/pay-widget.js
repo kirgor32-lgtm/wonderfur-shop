@@ -1,4 +1,4 @@
-/*! pay-widget v1.0.0 | embeddable payment widget (SBP + cards) | built 2026-11-27 */
+/*! pay-widget v1.0.0 | embeddable payment widget (SBP + cards) | built 2026-11-28 */
 (function (global) {
 'use strict';
 // ---- src/qr.js ----
@@ -847,7 +847,7 @@ function createWidget(options, mountTarget) {
     bank: null, failCode: null, failText: '', confirmDelete: null, qrFromMobile: false, result: 'pending'
   };
   var pollTimer = null, tickTimer = null, deeplinkTimer = null, toastTimer = null;
-  var checking = false, destroyed = false, localExpiredAt = 0, prevOverflow = null;
+  var checking = false, destroyed = false, localExpiredAt = 0, prevOverflow = null, adapterReady = null;
 
   // ---- DOM skeleton (Shadow DOM isolates styles both ways) ------------------
   var host = document.createElement('div');
@@ -1253,6 +1253,11 @@ function createWidget(options, mountTarget) {
   }
 
   function payCard() {
+    if (st.config === null) {
+      show('processing');
+      adapterReady.then(function () { if (!destroyed) payCard(); });
+      return;
+    }
     var a = adapter();
     if (!a) return fail('default', 'Оплата картой сейчас недоступна. Оплатите через СБП.');
     if (a.mode === 'hosted') {
@@ -1450,7 +1455,7 @@ function createWidget(options, mountTarget) {
 
   show('methods');
   if (!inline) sheet.focus({ preventScroll: true });
-  api.config().then(function (cfg) { st.config = cfg || {}; }, function () { st.config = {}; });
+  adapterReady = api.config().then(function (cfg) { st.config = cfg || {}; }, function () { st.config = {}; });
   loadCards();
   if (device === 'mobile') loadBanks(opts.banksUrl || NSPK_BANKS_URL, banksBackup); // warm up the bank list
 
