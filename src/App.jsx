@@ -1500,22 +1500,27 @@ function Checkout() {
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
   const sending = useRef(false) // защита от двойного нажатия
+  const reserving = useRef(false) // один запрос резервирования за раз
+  const orderNo = useRef(null) // повтор оплаты использует тот же номер и не создаёт новые заказы
   const step = done ? 'done' : !st.user ? 'auth' : 'point'
   const fullName = st.user ? [st.user.name, st.user.surname].filter(Boolean).join(' ') : ''
   const submit = async (e) => {
     e.preventDefault()
-    if (sending.current) return
+    if (sending.current || reserving.current) return
     const where = manual ? point.trim() : pt ? pickupPointDelivery(pt) : ''
     if (where.length < 5) return setErr(manual ? 'Укажите адрес пункта выдачи' : 'Выберите пункт на карте или в списке')
     setErr('')
-    const n = String(Date.now()).slice(-6)
+    const n = orderNo.current || String(Date.now()).slice(-6)
+    orderNo.current = n
     const contact = { name: fullName, phone: st.user.phone, delivery: `5Post: ${where}` }
+    reserving.current = true
     setBusy(true)
     // Сначала резервируем заказ в CRM: даже если покупатель закроет банк или перезагрузит страницу,
     // оплаченный заказ уже не потеряется.
     try {
       await st.reserveOrder(contact, { n })
     } catch {
+      reserving.current = false
       setBusy(false)
       setErr('Не удалось создать заказ в CRM. Деньги не списаны — проверьте интернет и попробуйте ещё раз')
       return
@@ -1524,6 +1529,7 @@ function Checkout() {
     // поэтому наше окно оформления на это время закрываем: иначе оно перехватывает клики
     openPay({ amount: st.totalWithDiscount, orderId: n })
       .then((PW) => {
+        reserving.current = false
         setBusy(false)
         st.setCheckout(false)
         let paid = false
@@ -1534,7 +1540,7 @@ function Checkout() {
           onClose: () => { if (!paid) st.setCheckout(true) },
         })
       })
-      .catch(() => { setBusy(false); setErr('Не загрузилось окно оплаты. Проверьте интернет и попробуйте ещё раз') })
+      .catch(() => { reserving.current = false; setBusy(false); setErr('Не загрузилось окно оплаты. Проверьте интернет и попробуйте ещё раз') })
   }
   // Оплачено в виджете (сейчас тестовый режим — без списаний) → заказ уходит как оплаченный
   const finish = (where, n) => {
