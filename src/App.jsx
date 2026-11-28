@@ -1025,7 +1025,11 @@ function ThanksPage({ nav }) {
   const st = useStore()
   const [t, setT] = useState(null)
   useEffect(() => {
-    try { setT(JSON.parse(sessionStorage.getItem(THANKS_KEY) || 'null')) } catch { setT(null) }
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(THANKS_KEY) || 'null')
+      const paidReturn = new URLSearchParams(location.search).get('payment_status') === 'success'
+      setT(saved || (paidReturn ? { type: 'order' } : null))
+    } catch { setT(null) }
   }, [])
   const order = t?.type === 'order'
   const name = t?.name ? `, ${t.name}` : ''
@@ -1038,9 +1042,9 @@ function ThanksPage({ nav }) {
     <section className="wrap py-14 sm:py-20">
       <div className="mx-auto max-w-[640px] text-center">
         <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-violet-dark text-white"><Check className="size-8" /></div>
-        <h1 className="mt-5 text-[32px] font-extrabold leading-tight sm:text-[40px]">Спасибо{name}!</h1>
+        <h1 className="mt-5 text-[32px] font-extrabold leading-tight sm:text-[40px]">{order ? 'Спасибо за заказ!' : `Спасибо${name}!`}</h1>
         <p className="mt-3 text-lg text-txt-2">
-          {order ? `Заказ №${t.n} принят.` : t?.type === 'lead' ? (t.text ? cap(t.text.replace(/^Спасибо[,!.]?\s*/, '')) : 'Заявка отправлена, скоро ответим.') : 'Мы получили ваше обращение.'}
+          {order ? (t.n ? `Заказ №${t.n} принят.` : 'Заказ принят и оплачен.') : t?.type === 'lead' ? (t.text ? cap(t.text.replace(/^Спасибо[,!.]?\s*/, '')) : 'Заявка отправлена, скоро ответим.') : 'Мы получили ваше обращение.'}
         </p>
       </div>
       {steps && (
@@ -1519,6 +1523,7 @@ function Checkout() {
     // оплаченный заказ уже не потеряется.
     try {
       await st.reserveOrder(contact, { n })
+      try { sessionStorage.setItem(THANKS_KEY, JSON.stringify({ type: 'order', n, name: st.user?.name || '' })) } catch {}
     } catch {
       reserving.current = false
       setBusy(false)
@@ -1537,7 +1542,7 @@ function Checkout() {
           orderId: n, amount: st.totalWithDiscount, currency: 'RUB', description: `Заказ №${n} в магазине Wonderfur`,
           customerId: payCustomer(), backendUrl: PAY_API,
           onSuccess: () => { paid = true; finish(where, n) },
-          onClose: () => { if (!paid) st.setCheckout(true) },
+          onClose: () => { if (!paid) { try { sessionStorage.removeItem(THANKS_KEY) } catch {}; st.setCheckout(true) } },
         })
       })
       .catch(() => { reserving.current = false; setBusy(false); setErr('Не загрузилось окно оплаты. Проверьте интернет и попробуйте ещё раз') })
