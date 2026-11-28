@@ -13,15 +13,15 @@ import { catalogEntries, catalogWasSynced } from './crm-catalog.js'
 
 // ⚠️ ЗАГЛУШКИ — заменить перед запуском (поиск: «ЗАГЛУШКА»)
 export const contacts = {
-  phone: '+7 (950) 026-78-38',
-  phoneHref: 'tel:+79500267838',
+  phone: '+7 (812) 765-26-05',
+  phoneHref: 'tel:+78127652605',
   email: 'zoopolka@bk.ru',
   telegram: 'https://t.me/Wonderfurshop_bot', // бот магазина, подключён к CRM
   max: 'https://max.ru/id781718689815_bot',
   dzen: 'https://dzen.ru/id/6b033454569eed7d4d164dd9',
   hours: 'ежедневно 9:00–21:00',
   city: 'Санкт-Петербург',
-  demo: true, // пока true — телефон не попадает в микроразметку
+  demo: false, // действующий городской номер, включаем телефон в микроразметку
 }
 // Реквизиты продавца: обязательны по Правилам продажи дистанционным способом (ПП РФ № 2463)
 // Источник: лист записи ЕГРИП (Р60009) и выписка ЕГРН от 19.11.2026
