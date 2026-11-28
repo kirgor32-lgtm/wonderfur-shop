@@ -322,17 +322,16 @@ function Hero({ nav }) {
             className="size-full object-cover object-center"
           />
         </picture>
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/95 via-white/65 to-transparent sm:bg-gradient-to-r sm:from-white/95 sm:via-white/65 sm:to-transparent" />
         <div className="relative z-10 max-w-[620px] p-5 sm:p-10 xl:p-16">
           <span className="kicker hidden text-txt-2 sm:inline">суперпремиум · Санкт-Петербург</span>
-          <h1 className="text-balance text-[24px] font-semibold leading-[1.1] tracking-[-0.02em] sm:mt-4 sm:text-[44px] sm:leading-[1.05] sm:tracking-[-0.03em] xl:text-[64px]">Корма Wonderfur для кошек и собак</h1>
+          <h1 className="text-balance text-[28px] font-extrabold leading-[1.02] tracking-[-0.045em] sm:mt-4 sm:text-[46px] sm:leading-[.98] xl:text-[66px]">Корма Wonderfur для кошек и собак</h1>
           <p className="mt-2 text-[14px] leading-snug text-txt-2 sm:hidden">{recipes(products.length)} · от {minAll} ₽ · доставка бесплатно</p>
           <p className="mt-4 hidden max-w-[460px] text-lg leading-snug text-txt-2 sm:block">
             {recipes(products.length)} с мясом до 46%: {lineupAll()}. От {minAll} ₽, доставка по Петербургу бесплатно.
           </p>
           <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-8 sm:flex sm:flex-wrap">
-            <Link to={kinds.cat.path} className="flex h-11 items-center justify-center rounded-full bg-ink px-7 text-[15px] font-medium text-white hover:bg-ink-2 sm:h-12">кошкам</Link>
-            <Link to={kinds.dog.path} className="flex h-11 items-center justify-center rounded-full bg-white px-7 text-[15px] font-medium hover:bg-gray-2 sm:h-12">собакам</Link>
+            <Link to={kinds.cat.path} className="flex h-11 items-center justify-center rounded-[14px] bg-ink px-7 text-[15px] font-semibold text-white hover:bg-ink-2 sm:h-12">кошкам</Link>
+            <Link to={kinds.dog.path} className="flex h-11 items-center justify-center rounded-[14px] bg-white px-7 text-[15px] font-semibold hover:bg-gray-2 sm:h-12">собакам</Link>
           </div>
         </div>
       </div>
