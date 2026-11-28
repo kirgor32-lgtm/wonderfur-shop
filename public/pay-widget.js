@@ -1262,7 +1262,13 @@ function createWidget(options, mountTarget) {
     if (!a) return fail('default', 'Оплата картой сейчас недоступна. Оплатите через СБП.');
     if (a.mode === 'hosted') {
       show('processing');
-      createPayment({ method: 'card', saveCard: !!opts.customerId }).then(handlePayment, onCreateError);
+      createPayment({ method: 'card', saveCard: !!opts.customerId }).then(function (p) {
+        if (p && p.status === 'requires_action' && p.confirmation && p.confirmation.url) {
+          window.location.assign(p.confirmation.url);
+          return;
+        }
+        handlePayment(p);
+      }, onCreateError);
     } else {
       show('card');
     }
